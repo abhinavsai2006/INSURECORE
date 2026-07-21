@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const policy_controller_1 = require("../controllers/policy.controller");
+const auth_1 = require("../middleware/auth");
+const shared_1 = require("@insurecore/shared");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate);
+router.get('/', policy_controller_1.getPolicies);
+router.get('/expiring-soon', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), policy_controller_1.getExpiringPolicies);
+router.post('/', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), policy_controller_1.createPolicy);
+router.get('/:id', policy_controller_1.getPolicyById);
+router.post('/:id/renew', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), policy_controller_1.renewPolicy);
+router.post('/:id/cancel', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), policy_controller_1.cancelPolicy);
+router.get('/:id/pdf', policy_controller_1.downloadPolicyPDF);
+exports.default = router;

@@ -1,0 +1,224 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getPolicies = getPolicies;
+exports.createPolicy = createPolicy;
+exports.getPolicyById = getPolicyById;
+exports.renewPolicy = renewPolicy;
+exports.cancelPolicy = cancelPolicy;
+exports.getExpiringPolicies = getExpiringPolicies;
+exports.downloadPolicyPDF = downloadPolicyPDF;
+const db_1 = require("../db");
+const shared_1 = require("@insurecore/shared");
+const audit_1 = require("../services/audit");
+const pdf_1 = require("../services/pdf");
+async function getPolicies(req, res, next) {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+        const status = req.query.status;
+        const policyType = req.query.policyType;
+        const conditions = [];
+        if (req.user?.role === shared_1.Role.CUSTOMER) {
+            if (!req.user.customerId) {
+                return res.json({ data: [], pagination: { total: 0, page, limit, totalPages: 0 } });
+            }
+            conditions.push({ customerId: req.user.customerId });
+        }
+        else if (req.user?.role === shared_1.Role.AGENT) {
+            conditions.push({ agentId: req.user.id });
+        }
+        if (status)
+            conditions.push({ status });
+        if (policyType)
+            conditions.push({ policyType });
+        if (search) {
+            conditions.push({
+                OR: [
+                    { policyNumber: { contains: search } },
+                    { planName: { contains: search } },
+                ],
+            });
+        }
+        const where = conditions.length > 0 ? { AND: conditions } : {};
+        const [total, policies] = await Promise.all([
+            db_1.db.policy.count({ where }),
+            db_1.db.policy.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    customer: { select: { id: true, name: true, email: true, phone: true } },
+                    agent: { select: { id: true, name: true, email: true } },
+                    _count: { select: { claims: true, payments: true } },
+                },
+            }),
+        ]);
+        return res.json({
+            data: policies,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function createPolicy(req, res, next) {
+    try {
+        const input = shared_1.createPolicySchema.parse(req.body);
+        const year = new Date().getFullYear();
+        const count = await db_1.db.policy.count();
+        const seq = String(count + 1).padStart(6, '0');
+        const policyNumber = `POL-${year}-${seq}`;
+        const policy = await db_1.db.policy.create({
+            data: {
+                policyNumber,
+                customerId: input.customerId,
+                agentId: input.agentId || (req.user?.role === shared_1.Role.AGENT ? req.user.id : null),
+                policyType: input.policyType,
+                planName: input.planName,
+                sumInsured: input.sumInsured,
+                premiumAmount: input.premiumAmount,
+                premiumFrequency: input.premiumFrequency,
+                startDate: new Date(input.startDate),
+                endDate: new Date(input.endDate),
+                status: shared_1.PolicyStatus.ACTIVE,
+                nominee: input.nominee,
+                payments: {
+                    create: {
+                        amount: input.premiumAmount,
+                        dueDate: new Date(input.startDate),
+                        paymentStatus: 'PENDING',
+                    },
+                },
+            },
+            include: {
+                customer: true,
+                agent: true,
+                payments: true,
+            },
+        });
+        await (0, audit_1.logAudit)(req.user.id, 'CREATE_POLICY', 'Policy', policy.id, { policyNumber });
+        return res.status(201).json({
+            data: policy,
+            message: `Policy ${policyNumber} issued successfully`,
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function getPolicyById(req, res, next) {
+    try {
+        const { id } = req.params;
+        const policy = await db_1.db.policy.findUnique({
+            where: { id },
+            include: {
+                customer: true,
+                agent: { select: { id: true, name: true, email: true, phone: true } },
+                claims: { orderBy: { submissionDate: 'desc' } },
+                payments: { orderBy: { dueDate: 'desc' } },
+                documents: true,
+            },
+        });
+        if (!policy) {
+            return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Policy not found' } });
+        }
+        if (req.user?.role === shared_1.Role.CUSTOMER && req.user.customerId !== policy.customerId) {
+            return res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Access denied' } });
+        }
+        return res.json({ data: policy });
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function renewPolicy(req, res, next) {
+    try {
+        const { id } = req.params;
+        const policy = await db_1.db.policy.findUnique({ where: { id } });
+        if (!policy) {
+            return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Policy not found' } });
+        }
+        const currentEndDate = new Date(policy.endDate);
+        const newEndDate = new Date(currentEndDate);
+        newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+        const renewed = await db_1.db.policy.update({
+            where: { id },
+            data: {
+                endDate: newEndDate,
+                status: shared_1.PolicyStatus.ACTIVE,
+                payments: {
+                    create: {
+                        amount: policy.premiumAmount,
+                        dueDate: currentEndDate,
+                        paymentStatus: 'PENDING',
+                    },
+                },
+            },
+            include: { payments: true },
+        });
+        await (0, audit_1.logAudit)(req.user.id, 'RENEW_POLICY', 'Policy', id, { newEndDate });
+        return res.json({ data: renewed, message: 'Policy renewed successfully for 1 year' });
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function cancelPolicy(req, res, next) {
+    try {
+        const { id } = req.params;
+        const cancelled = await db_1.db.policy.update({
+            where: { id },
+            data: { status: shared_1.PolicyStatus.CANCELLED },
+        });
+        await (0, audit_1.logAudit)(req.user.id, 'CANCEL_POLICY', 'Policy', id);
+        return res.json({ data: cancelled, message: 'Policy cancelled' });
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function getExpiringPolicies(req, res, next) {
+    try {
+        const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        const policies = await db_1.db.policy.findMany({
+            where: {
+                endDate: { lte: thirtyDaysFromNow },
+                status: { in: [shared_1.PolicyStatus.ACTIVE, shared_1.PolicyStatus.RENEWAL_DUE] },
+            },
+            take: 10,
+            orderBy: { endDate: 'asc' },
+            include: { customer: true },
+        });
+        return res.json({ data: policies });
+    }
+    catch (err) {
+        next(err);
+    }
+}
+async function downloadPolicyPDF(req, res, next) {
+    try {
+        const { id } = req.params;
+        const policy = await db_1.db.policy.findUnique({
+            where: { id },
+            include: { customer: true, agent: true },
+        });
+        if (!policy) {
+            return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Policy not found' } });
+        }
+        const pdfBuffer = await (0, pdf_1.generatePolicyPDF)(policy);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${policy.policyNumber}.pdf"`);
+        return res.send(pdfBuffer);
+    }
+    catch (err) {
+        next(err);
+    }
+}

@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const customer_controller_1 = require("../controllers/customer.controller");
+const auth_1 = require("../middleware/auth");
+const shared_1 = require("@insurecore/shared");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate);
+router.get('/', customer_controller_1.getCustomers);
+router.post('/', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), customer_controller_1.createCustomer);
+router.get('/:id', customer_controller_1.getCustomerById);
+router.patch('/:id', customer_controller_1.updateCustomer);
+router.get('/:id/history', customer_controller_1.getCustomerHistory);
+exports.default = router;

@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password      String
+  role          String   @default("CUSTOMER") // ADMIN, AGENT, CUSTOMER
+  phone         String?
+  avatarUrl     String?
+  isActive      Boolean  @default(true)
+  refreshToken  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  agentPolicies Policy[]       @relation("AgentPolicies")
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  customer      Customer?
+}
+
+model Customer {
+  id          String   @id @default(uuid())
+  userId      String?  @unique
+  user        User?    @relation(fields: [userId], references: [id])
+  name        String
+  dob         DateTime
+  gender      String?
+  phone       String
+  email       String   @unique
+  address     String
+  city        String?
+  state       String?
+  pincode     String?
+  kycVerified Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  policies    Policy[]
+  documents   Document[]
+}
+
+model Policy {
+  id               String   @id @default(uuid())
+  policyNumber     String   @unique
+  customerId       String
+  customer         Customer @relation(fields: [customerId], references: [id])
+  agentId          String?
+  agent            User?    @relation("AgentPolicies", fields: [agentId], references: [id])
+  policyType       String   // HEALTH, LIFE, MOTOR, HOME, TRAVEL
+  planName         String
+  sumInsured       Float
+  premiumAmount    Float
+  premiumFrequency String   // MONTHLY, QUARTERLY, YEARLY
+  startDate        DateTime
+  endDate          DateTime
+  status           String   @default("PENDING") // ACTIVE, EXPIRED, CANCELLED, PENDING, RENEWAL_DUE
+  nominee          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  claims           Claim[]
+  payments         Payment[]
+  documents        Document[]
+}
+
+model Claim {
+  id             String    @id @default(uuid())
+  claimNumber    String    @unique
+  policyId       String
+  policy         Policy    @relation(fields: [policyId], references: [id])
+  claimAmount    Float
+  approvedAmount Float?
+  reason         String
+  description    String?
+  status         String    @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, SETTLED
+  reviewedById   String?
+  reviewNotes    String?
+  submissionDate DateTime  @default(now())
+  resolvedDate   DateTime?
+
+  documents      Document[]
+}
+
+model Payment {
+  id             String    @id @default(uuid())
+  policyId       String
+  policy         Policy    @relation(fields: [policyId], references: [id])
+  amount         Float
+  dueDate        DateTime
+  paymentDate    DateTime?
+  paymentStatus  String    @default("PENDING") // PAID, PENDING, OVERDUE, FAILED
+  method         String?   // CARD, UPI, BANK_TRANSFER, CASH
+  transactionRef String?
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+}
+
+model Document {
+  id          String    @id @default(uuid())
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  policyId    String?
+  policy      Policy?   @relation(fields: [policyId], references: [id])
+  claimId     String?
+  claim       Claim?    @relation(fields: [claimId], references: [id])
+  fileName    String
+  filePath    String
+  fileType    String
+  fileSizeKb  Int
+  docCategory String    // KYC, POLICY, CLAIM_EVIDENCE, OTHER
+  uploadedAt  DateTime  @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  metadata   String?
+  createdAt  DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

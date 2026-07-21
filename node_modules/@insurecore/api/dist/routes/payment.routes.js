@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const payment_controller_1 = require("../controllers/payment.controller");
+const auth_1 = require("../middleware/auth");
+const shared_1 = require("@insurecore/shared");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate);
+router.get('/', payment_controller_1.getPayments);
+router.get('/overdue', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), payment_controller_1.getOverduePayments);
+router.post('/', payment_controller_1.createPayment);
+router.post('/:id/mark-paid', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), payment_controller_1.markPaid);
+router.get('/:id/receipt', payment_controller_1.downloadReceiptPDF);
+exports.default = router;

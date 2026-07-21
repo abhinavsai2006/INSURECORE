@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const user_controller_1 = require("../controllers/user.controller");
+const auth_1 = require("../middleware/auth");
+const shared_1 = require("@insurecore/shared");
+const router = (0, express_1.Router)();
+router.use(auth_1.authenticate, (0, auth_1.authorize)([shared_1.Role.ADMIN]));
+router.get('/', user_controller_1.getUsers);
+router.post('/', user_controller_1.createUser);
+router.patch('/:id/toggle-active', user_controller_1.toggleUserActive);
+exports.default = router;
