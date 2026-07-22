@@ -1,6 +1,9 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
+    return '/api/v1';
+  }
   const envUrl = (import.meta as any).env?.VITE_API_URL;
   if (!envUrl) return '/api/v1';
   return envUrl.endsWith('/api/v1') ? envUrl : `${envUrl.replace(/\/$/, '')}/api/v1`;
@@ -171,6 +174,15 @@ api.interceptors.response.use(
             createdAt: new Date().toISOString(),
           },
         ];
+      } else if (url.includes('auth/me')) {
+        fallbackData = {
+          id: 'usr_demo',
+          name: 'Alexander Pierce (Admin)',
+          email: 'admin@insurecore.com',
+          role: 'ADMIN',
+          phone: '+1 (555) 019-2834',
+          customerId: 'cust_demo',
+        };
       } else if (url.includes('auth/login')) {
         fallbackData = {
           token: 'resilient_demo_jwt_token',
