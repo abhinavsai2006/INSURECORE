@@ -9,6 +9,7 @@ import documentRoutes from './document.routes';
 import reportRoutes from './report.routes';
 import notificationRoutes from './notification.routes';
 import auditRoutes from './audit.routes';
+import quoteRoutes from './quote.routes';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/documents', documentRoutes);
 router.use('/reports', reportRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/audit-logs', auditRoutes);
+router.use('/quotes', quoteRoutes);
 
 export default router;

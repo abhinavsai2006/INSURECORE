@@ -1,9 +1,13 @@
 // src/index.ts
 import { z } from "zod";
 var Role = /* @__PURE__ */ ((Role2) => {
+  Role2["SUPER_ADMIN"] = "SUPER_ADMIN";
   Role2["ADMIN"] = "ADMIN";
   Role2["AGENT"] = "AGENT";
   Role2["CUSTOMER"] = "CUSTOMER";
+  Role2["CLAIMS_OFFICER"] = "CLAIMS_OFFICER";
+  Role2["UNDERWRITER"] = "UNDERWRITER";
+  Role2["CUSTOMER_SUPPORT"] = "CUSTOMER_SUPPORT";
   return Role2;
 })(Role || {});
 var PolicyStatus = /* @__PURE__ */ ((PolicyStatus2) => {
@@ -54,7 +58,9 @@ var PaymentMethod = /* @__PURE__ */ ((PaymentMethod2) => {
   PaymentMethod2["CARD"] = "CARD";
   PaymentMethod2["UPI"] = "UPI";
   PaymentMethod2["BANK_TRANSFER"] = "BANK_TRANSFER";
+  PaymentMethod2["NETBANKING"] = "NETBANKING";
   PaymentMethod2["CASH"] = "CASH";
+  PaymentMethod2["EMI"] = "EMI";
   return PaymentMethod2;
 })(PaymentMethod || {});
 var loginSchema = z.object({
@@ -95,8 +101,8 @@ var createPolicySchema = z.object({
   agentId: z.string().optional().nullable(),
   policyType: z.nativeEnum(PolicyType),
   planName: z.string().min(2, "Plan name is required"),
-  sumInsured: z.number().positive("Sum insured must be positive"),
-  premiumAmount: z.number().positive("Premium amount must be positive"),
+  sumInsured: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive("Sum insured must be positive")),
+  premiumAmount: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive("Premium amount must be positive")),
   premiumFrequency: z.nativeEnum(PremiumFrequency),
   startDate: z.string().or(z.date()).transform((val) => new Date(val)),
   endDate: z.string().or(z.date()).transform((val) => new Date(val)),
@@ -104,7 +110,7 @@ var createPolicySchema = z.object({
 });
 var createClaimSchema = z.object({
   policyId: z.string().min(1, "Policy selection is required"),
-  claimAmount: z.number().positive("Claim amount must be positive"),
+  claimAmount: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive("Claim amount must be positive")),
   reason: z.string().min(5, "Reason for claim is required"),
   description: z.string().optional()
 });
@@ -115,8 +121,8 @@ var updateClaimStatusSchema = z.object({
 });
 var createPaymentSchema = z.object({
   policyId: z.string().min(1, "Policy ID is required"),
-  amount: z.number().positive("Amount must be positive"),
-  method: z.nativeEnum(PaymentMethod),
+  amount: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive("Amount must be positive")),
+  method: z.string().transform((v) => v.toUpperCase()),
   transactionRef: z.string().optional()
 });
 export {

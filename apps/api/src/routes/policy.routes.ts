@@ -7,6 +7,8 @@ import {
   cancelPolicy,
   getExpiringPolicies,
   downloadPolicyPDF,
+  downloadTaxCertificatePDF,
+  downloadHealthCardPDF,
 } from '../controllers/policy.controller';
 import { authenticate, authorize } from '../middleware/auth';
 import { Role } from '@insurecore/shared';
@@ -22,5 +24,7 @@ router.get('/:id', getPolicyById);
 router.post('/:id/renew', authorize([Role.ADMIN, Role.AGENT]), renewPolicy);
 router.post('/:id/cancel', authorize([Role.ADMIN, Role.AGENT]), cancelPolicy);
 router.get('/:id/pdf', downloadPolicyPDF);
+router.get('/:id/tax-certificate', downloadTaxCertificatePDF);
+router.get('/:id/health-card', downloadHealthCardPDF);
 
 export default router;

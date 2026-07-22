@@ -9,4 +9,6 @@ router.use(auth_1.authenticate, (0, auth_1.authorize)([shared_1.Role.ADMIN, shar
 router.get('/overview', report_controller_1.getOverviewReport);
 router.get('/export/excel', report_controller_1.exportExcelReport);
 router.get('/export/pdf', report_controller_1.exportPDFReport);
+router.get('/policies/export', report_controller_1.exportPDFReport);
+router.get('/customers/export', report_controller_1.exportPDFReport);
 exports.default = router;

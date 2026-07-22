@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Shield, CheckCircle2, ArrowRight, UserCheck, Lock, HeartPulse, FileText, Sparkles, Building2, Download, CreditCard, ChevronLeft, Award, Activity, PhoneCall, Gift, CheckSquare, Zap, ShieldCheck, Save, Eye, EyeOff } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
-import { api } from '../lib/api';
-import { useAuthStore } from '../store/authStore';
+import { Button, Card, Badge, api } from '../../shared';
+import { useAuthStore } from '../../store/authStore';
 
 export const RegisterPage: React.FC = () => {
   const [step, setStep] = useState(1);

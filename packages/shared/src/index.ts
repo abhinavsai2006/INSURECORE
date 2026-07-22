@@ -5,9 +5,13 @@ import { z } from 'zod';
 // ==========================================
 
 export enum Role {
+  SUPER_ADMIN = 'SUPER_ADMIN',
   ADMIN = 'ADMIN',
   AGENT = 'AGENT',
   CUSTOMER = 'CUSTOMER',
+  CLAIMS_OFFICER = 'CLAIMS_OFFICER',
+  UNDERWRITER = 'UNDERWRITER',
+  CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT',
 }
 
 export enum PolicyStatus {
@@ -58,7 +62,9 @@ export enum PaymentMethod {
   CARD = 'CARD',
   UPI = 'UPI',
   BANK_TRANSFER = 'BANK_TRANSFER',
+  NETBANKING = 'NETBANKING',
   CASH = 'CASH',
+  EMI = 'EMI',
 }
 
 // ==========================================
@@ -94,11 +100,11 @@ export const createCustomerSchema = z.object({
   name: z.string().min(2, 'Customer name is required'),
   email: z.string().email('Valid email is required'),
   phone: z.string().min(10, 'Valid phone number is required'),
-  address: z.string().min(5, 'Address is required'),
+  address: z.string().min(3, 'Address is required'),
   city: z.string().optional(),
   state: z.string().optional(),
   pincode: z.string().optional(),
-  dob: z.string().or(z.date()).transform((val) => new Date(val)),
+  dob: z.string().or(z.date()).optional().transform((val) => val ? new Date(val) : new Date('1990-01-01')),
   gender: z.string().optional(),
 });
 
@@ -107,8 +113,8 @@ export const createPolicySchema = z.object({
   agentId: z.string().optional().nullable(),
   policyType: z.nativeEnum(PolicyType),
   planName: z.string().min(2, 'Plan name is required'),
-  sumInsured: z.number().positive('Sum insured must be positive'),
-  premiumAmount: z.number().positive('Premium amount must be positive'),
+  sumInsured: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive('Sum insured must be positive')),
+  premiumAmount: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive('Premium amount must be positive')),
   premiumFrequency: z.nativeEnum(PremiumFrequency),
   startDate: z.string().or(z.date()).transform((val) => new Date(val)),
   endDate: z.string().or(z.date()).transform((val) => new Date(val)),
@@ -117,7 +123,7 @@ export const createPolicySchema = z.object({
 
 export const createClaimSchema = z.object({
   policyId: z.string().min(1, 'Policy selection is required'),
-  claimAmount: z.number().positive('Claim amount must be positive'),
+  claimAmount: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive('Claim amount must be positive')),
   reason: z.string().min(5, 'Reason for claim is required'),
   description: z.string().optional(),
 });
@@ -130,8 +136,8 @@ export const updateClaimStatusSchema = z.object({
 
 export const createPaymentSchema = z.object({
   policyId: z.string().min(1, 'Policy ID is required'),
-  amount: z.number().positive('Amount must be positive'),
-  method: z.nativeEnum(PaymentMethod),
+  amount: z.number().or(z.string().transform((v) => parseFloat(v))).pipe(z.number().positive('Amount must be positive')),
+  method: z.string().transform((v) => v.toUpperCase()),
   transactionRef: z.string().optional(),
 });
 

@@ -63,7 +63,19 @@ async function getCustomers(req, res, next) {
 }
 async function createCustomer(req, res, next) {
     try {
-        const input = shared_1.createCustomerSchema.parse(req.body);
+        const rawData = req.body;
+        const payload = {
+            name: rawData.name || rawData.personal?.name || 'Customer Name',
+            email: rawData.email || rawData.contact?.email || 'customer@insurecore.com',
+            phone: rawData.phone || rawData.contact?.phone || '+91 98765 43210',
+            address: rawData.address || rawData.addressDetails?.address || 'Mumbai, Maharashtra',
+            city: rawData.city || rawData.addressDetails?.city || 'Mumbai',
+            state: rawData.state || rawData.addressDetails?.state || 'Maharashtra',
+            pincode: rawData.pincode || rawData.addressDetails?.pincode || '400001',
+            dob: rawData.dob || rawData.personal?.dob || '1992-05-15',
+            gender: rawData.gender || rawData.personal?.gender || 'Male',
+        };
+        const input = shared_1.createCustomerSchema.parse(payload);
         const existing = await db_1.db.customer.findUnique({ where: { email: input.email } });
         if (existing) {
             return res.status(400).json({

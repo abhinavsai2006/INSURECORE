@@ -1,9 +1,13 @@
 import { z } from 'zod';
 
 declare enum Role {
+    SUPER_ADMIN = "SUPER_ADMIN",
     ADMIN = "ADMIN",
     AGENT = "AGENT",
-    CUSTOMER = "CUSTOMER"
+    CUSTOMER = "CUSTOMER",
+    CLAIMS_OFFICER = "CLAIMS_OFFICER",
+    UNDERWRITER = "UNDERWRITER",
+    CUSTOMER_SUPPORT = "CUSTOMER_SUPPORT"
 }
 declare enum PolicyStatus {
     ACTIVE = "ACTIVE",
@@ -47,7 +51,9 @@ declare enum PaymentMethod {
     CARD = "CARD",
     UPI = "UPI",
     BANK_TRANSFER = "BANK_TRANSFER",
-    CASH = "CASH"
+    NETBANKING = "NETBANKING",
+    CASH = "CASH",
+    EMI = "EMI"
 }
 declare const loginSchema: z.ZodObject<{
     email: z.ZodString;
@@ -145,8 +151,8 @@ declare const createPolicySchema: z.ZodObject<{
     agentId: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     policyType: z.ZodNativeEnum<typeof PolicyType>;
     planName: z.ZodString;
-    sumInsured: z.ZodNumber;
-    premiumAmount: z.ZodNumber;
+    sumInsured: z.ZodPipeline<z.ZodUnion<[z.ZodNumber, z.ZodEffects<z.ZodString, number, string>]>, z.ZodNumber>;
+    premiumAmount: z.ZodPipeline<z.ZodUnion<[z.ZodNumber, z.ZodEffects<z.ZodString, number, string>]>, z.ZodNumber>;
     premiumFrequency: z.ZodNativeEnum<typeof PremiumFrequency>;
     startDate: z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodDate]>, Date, string | Date>;
     endDate: z.ZodEffects<z.ZodUnion<[z.ZodString, z.ZodDate]>, Date, string | Date>;
@@ -166,8 +172,8 @@ declare const createPolicySchema: z.ZodObject<{
     customerId: string;
     policyType: PolicyType;
     planName: string;
-    sumInsured: number;
-    premiumAmount: number;
+    sumInsured: string | number;
+    premiumAmount: string | number;
     premiumFrequency: PremiumFrequency;
     startDate: string | Date;
     endDate: string | Date;
@@ -176,7 +182,7 @@ declare const createPolicySchema: z.ZodObject<{
 }>;
 declare const createClaimSchema: z.ZodObject<{
     policyId: z.ZodString;
-    claimAmount: z.ZodNumber;
+    claimAmount: z.ZodPipeline<z.ZodUnion<[z.ZodNumber, z.ZodEffects<z.ZodString, number, string>]>, z.ZodNumber>;
     reason: z.ZodString;
     description: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
@@ -186,7 +192,7 @@ declare const createClaimSchema: z.ZodObject<{
     description?: string | undefined;
 }, {
     policyId: string;
-    claimAmount: number;
+    claimAmount: string | number;
     reason: string;
     description?: string | undefined;
 }>;
@@ -205,18 +211,18 @@ declare const updateClaimStatusSchema: z.ZodObject<{
 }>;
 declare const createPaymentSchema: z.ZodObject<{
     policyId: z.ZodString;
-    amount: z.ZodNumber;
-    method: z.ZodNativeEnum<typeof PaymentMethod>;
+    amount: z.ZodPipeline<z.ZodUnion<[z.ZodNumber, z.ZodEffects<z.ZodString, number, string>]>, z.ZodNumber>;
+    method: z.ZodEffects<z.ZodString, string, string>;
     transactionRef: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     policyId: string;
     amount: number;
-    method: PaymentMethod;
+    method: string;
     transactionRef?: string | undefined;
 }, {
     policyId: string;
-    amount: number;
-    method: PaymentMethod;
+    amount: string | number;
+    method: string;
     transactionRef?: string | undefined;
 }>;
 type LoginInput = z.infer<typeof loginSchema>;

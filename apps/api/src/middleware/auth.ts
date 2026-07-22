@@ -23,6 +23,8 @@ export async function authenticate(req: AuthRequest, res: Response, next: NextFu
       token = authHeader.split(' ')[1];
     } else if (req.cookies && req.cookies.accessToken) {
       token = req.cookies.accessToken;
+    } else if (req.query && req.query.token) {
+      token = req.query.token as string;
     }
 
     if (!token) {

@@ -45,6 +45,53 @@ model Customer {
 
   policies    Policy[]
   documents   Document[]
+  quotes      Quote[]
+  proposals   Proposal[]
+}
+
+model Quote {
+  id           String   @id @default(uuid())
+  quoteNumber  String   @unique
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id])
+  policyType   String   // HEALTH, LIFE, MOTOR, HOME, TRAVEL
+  planName     String
+  sumInsured   Float
+  basePremium  Float
+  gstAmount    Float
+  totalPremium Float
+  status       String   @default("GENERATED") // GENERATED, ACCEPTED, EXPIRED
+  createdAt    DateTime @default(now())
+
+  proposals    Proposal[]
+}
+
+model Proposal {
+  id                 String   @id @default(uuid())
+  proposalNumber     String   @unique
+  quoteId            String
+  quote              Quote    @relation(fields: [quoteId], references: [id])
+  customerId         String
+  customer           Customer @relation(fields: [customerId], references: [id])
+  medicalDeclaration String?
+  nomineeName        String
+  nomineeRelation    String
+  status             String   @default("SUBMITTED") // SUBMITTED, UNDERWRITING, APPROVED, REJECTED
+  createdAt          DateTime @default(now())
+
+  underwritingCases  UnderwritingCase[]
+}
+
+model UnderwritingCase {
+  id             String   @id @default(uuid())
+  caseNumber     String   @unique
+  proposalId     String
+  proposal       Proposal @relation(fields: [proposalId], references: [id])
+  riskScore      String   @default("LOW_RISK_CLASS_1")
+  aiFraudScore   Float    @default(0.02)
+  recommendation String   @default("AUTO_APPROVE")
+  status         String   @default("APPROVED") // PENDING, APPROVED, REJECTED
+  reviewedAt     DateTime @default(now())
 }
 
 model Policy {
@@ -69,6 +116,30 @@ model Policy {
   claims           Claim[]
   payments         Payment[]
   documents        Document[]
+  endorsements     Endorsement[]
+  renewals         Renewal[]
+}
+
+model Endorsement {
+  id              String   @id @default(uuid())
+  policyId        String
+  policy          Policy   @relation(fields: [policyId], references: [id])
+  endorsementType String   // NOMINEE_UPDATE, ADDRESS_CHANGE, COVERAGE_UPGRADE
+  description     String
+  effectiveDate   DateTime @default(now())
+  status          String   @default("APPROVED")
+  createdAt       DateTime @default(now())
+}
+
+model Renewal {
+  id            String   @id @default(uuid())
+  policyId      String
+  policy        Policy   @relation(fields: [policyId], references: [id])
+  previousNumber String
+  newNumber      String
+  renewalDate    DateTime @default(now())
+  premiumPaid    Float
+  status         String   @default("SUCCESS")
 }
 
 model Claim {

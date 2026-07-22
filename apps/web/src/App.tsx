@@ -7,7 +7,10 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CustomersPage } from './pages/CustomersPage';
+import { NewCustomerPage } from './pages/NewCustomerPage';
+import { CustomerDetailPage } from './pages/CustomerDetailPage';
 import { PoliciesPage } from './pages/PoliciesPage';
+import { NewPolicyPage } from './pages/NewPolicyPage';
 import { ClaimsPage } from './pages/ClaimsPage';
 import { PaymentsPage } from './pages/PaymentsPage';
 import { CheckoutPage } from './pages/CheckoutPage';
@@ -60,10 +63,18 @@ export function App() {
         >
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/customers" element={<CustomersPage />} />
+          <Route path="/customers/new" element={<NewCustomerPage />} />
+          <Route path="/customer-onboarding" element={<NewCustomerPage />} />
+          <Route path="/customers/:id" element={<CustomerDetailPage />} />
           <Route path="/policies" element={<PoliciesPage />} />
+          <Route path="/policies/new" element={<NewPolicyPage />} />
+          <Route path="/quote-workspace" element={<NewPolicyPage />} />
+          <Route path="/proposal-review" element={<NewPolicyPage />} />
           <Route path="/claims" element={<ClaimsPage />} />
           <Route path="/payments" element={<PaymentsPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/secure-checkout" element={<CheckoutPage />} />
+          <Route path="/policy-generated" element={<CheckoutPage />} />
           <Route path="/documents" element={<DocumentsPage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/audit-logs" element={<AuditPage />} />

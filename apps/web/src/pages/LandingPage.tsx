@@ -120,8 +120,8 @@ export const LandingPage: React.FC = () => {
       <div className="bg-slate-900 text-slate-300 text-xs py-2.5 px-6 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <span className="flex items-center font-semibold">
-            <Award className="w-3.5 h-3.5 mr-1.5 text-blue-400" />
-            IRDAI Registered Insurer Reg. No. 154 | CIN: L66010MH2002PLC136741 | GSTIN: 27AABCI1234F1Z9
+            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-blue-400" />
+            100% Cashless Hospitalization & Instant Digital Issuance | IRDAI Regulated Insurer
           </span>
         </div>
         <div className="hidden lg:flex items-center space-x-6 text-[11px] font-bold">
@@ -145,14 +145,28 @@ export const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="hidden lg:flex items-center space-x-7 text-xs font-bold text-slate-700">
-            <a href="#plans" className="hover:text-blue-600 transition">Protection Plans</a>
-            <a href="#tiers" className="hover:text-blue-600 transition">Compare Tiers</a>
-            <a href="#calculator" className="hover:text-blue-600 transition">Quote Calculator</a>
-            <a href="#hospitals" className="hover:text-blue-600 transition">Cashless Network</a>
-            <a href="#claims" className="hover:text-blue-600 transition">Claims Journey</a>
-            <a href="#portability" className="hover:text-blue-600 transition">Policy Portability</a>
-            <a href="#governance" className="hover:text-blue-600 transition">Governance & GRO</a>
+          <div className="hidden lg:flex items-center space-x-6 text-xs font-bold text-slate-700">
+            <a href="#plans" className="hover:text-blue-600 transition flex items-center">
+              <HeartPulse className="w-4 h-4 mr-1.5 text-blue-600" /> Protection Plans
+            </a>
+            <a href="#tiers" className="hover:text-blue-600 transition flex items-center">
+              <Sparkles className="w-4 h-4 mr-1.5 text-blue-600" /> Compare Tiers
+            </a>
+            <a href="#calculator" className="hover:text-blue-600 transition flex items-center">
+              <Calculator className="w-4 h-4 mr-1.5 text-blue-600" /> Quote Calculator
+            </a>
+            <a href="#hospitals" className="hover:text-blue-600 transition flex items-center">
+              <Building2 className="w-4 h-4 mr-1.5 text-blue-600" /> Cashless Network
+            </a>
+            <a href="#claims" className="hover:text-blue-600 transition flex items-center">
+              <Zap className="w-4 h-4 mr-1.5 text-blue-600" /> Claims Journey
+            </a>
+            <a href="#portability" className="hover:text-blue-600 transition flex items-center">
+              <RefreshCw className="w-4 h-4 mr-1.5 text-blue-600" /> Policy Portability
+            </a>
+            <a href="#governance" className="hover:text-blue-600 transition flex items-center">
+              <ShieldCheck className="w-4 h-4 mr-1.5 text-blue-600" /> Governance & GRO
+            </a>
           </div>
 
           <div className="flex items-center space-x-3">
@@ -734,38 +748,96 @@ export const LandingPage: React.FC = () => {
         </div>
       </section>
 
-      {/* 11. Statutory / Grievance Redressal Section */}
-      <section className="max-w-7xl mx-auto px-6 py-16" id="governance">
-        <div className="bg-slate-900 text-white rounded-3xl p-8 md:p-12 border border-slate-800 space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full border border-blue-400/30">
-                Statutory Regulatory Disclosures
-              </span>
-              <h3 className="text-2xl font-extrabold mt-2">IRDAI Governance & Grievance Redressal Mechanism</h3>
+      {/* 11. Institutional Split Cards Section (Half Image + Half Content) */}
+      <section className="max-w-7xl mx-auto px-6 py-10" id="governance">
+        <div className="space-y-6">
+          {/* Card 1: 20-Min Cashless Hospitalization & Medical Care */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-6 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div className="md:col-span-5 h-48 md:h-56 rounded-2xl overflow-hidden relative">
+              <img
+                src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=80"
+                alt="Cashless Medical Protection"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-extrabold px-3 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
+                10,500+ Hospital Network
+              </div>
             </div>
-            <div className="text-xs text-right font-medium text-slate-400">
-              <p>Registered Office: InsureCore Financial Tower, BKC, Mumbai 400051</p>
-              <p>IRDAI Registration No: 154 | Non-Life & Health Insurer</p>
+
+            <div className="md:col-span-7 space-y-2.5">
+              <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+                Cashless Care Guarantee
+              </span>
+              <h3 className="text-lg md:text-xl font-extrabold text-slate-900 leading-snug">
+                20-Minute Cashless Hospital Pre-Authorization
+              </h3>
+              <p className="text-slate-600 text-xs leading-relaxed font-medium">
+                InsureCore connects directly with TPA desks across 10,500+ cashless partner hospitals. Receive instant medical pre-authorization approvals within 20 minutes with zero out-of-pocket payments during medical emergencies.
+              </p>
+
+              <div className="pt-1 grid grid-cols-2 gap-2.5 text-[11px] font-bold text-slate-800">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>Zero Room Rent Co-Pay</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>Direct Hospital Settlement</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>Organ Donor Coverage</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>AYUSH Inpatient Care</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-300 font-medium">
-            <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
-              <h4 className="font-bold text-white mb-1">Grievance Redressal Officer (GRO)</h4>
-              <p className="text-slate-400">Mr. Anand Verma, Principal Officer</p>
-              <p className="text-blue-400 mt-1">Email: gro@insurecore.com</p>
-              <p className="text-slate-400">Helpline: +91 (22) 6700-1122</p>
+          {/* Card 2: Full Auto Motor Protection & 24x7 Roadside Assistance */}
+          <div className="bg-white border border-slate-200 rounded-3xl p-4 md:p-6 shadow-xs grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div className="md:col-span-7 space-y-2.5 order-2 md:order-1">
+              <span className="text-[10px] font-extrabold text-blue-600 uppercase tracking-wider bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+                Auto & Vehicle Protection
+              </span>
+              <h3 className="text-lg md:text-xl font-extrabold text-slate-900 leading-snug">
+                Full Auto Comprehensive & Roadside Assistance
+              </h3>
+              <p className="text-slate-600 text-xs leading-relaxed font-medium">
+                Protect your car and bike with zero-depreciation coverage, engine & gearbox riders, free key replacement, and instant cashless repairs across 6,200+ authorized workshops nationwide.
+              </p>
+
+              <div className="pt-1 grid grid-cols-2 gap-2.5 text-[11px] font-bold text-slate-800">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>100% Parts Zero-Depreciation</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>6,200+ Cashless Garages</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>Instant Spot Video Inspection</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 flex-shrink-0" />
+                  <span>24x7 Roadside Towing Rider</span>
+                </div>
+              </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
-              <h4 className="font-bold text-white mb-1">Insurance Ombudsman Escalation</h4>
-              <p className="text-slate-400">Unresolved complaints after 15 days can be escalated to the Insurance Ombudsman Office under Ombudsman Rules, 2017.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-800/80 border border-slate-700">
-              <h4 className="font-bold text-white mb-1">IRDAI Bima Bharosa (IGMS) Portal</h4>
-              <p className="text-slate-400">Register statutory grievances on the IRDAI IGMS Portal at bimabharosa.irdai.gov.in.</p>
+            <div className="md:col-span-5 h-48 md:h-56 rounded-2xl overflow-hidden relative order-1 md:order-2">
+              <img
+                src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80"
+                alt="Full Auto Protection & Vehicle Insurance"
+                className="w-full h-full object-cover object-center"
+              />
+              <div className="absolute top-3 right-3 bg-slate-900/90 text-blue-400 text-[10px] font-extrabold px-3 py-0.5 rounded-full shadow-xs uppercase tracking-wider border border-slate-700">
+                6,200+ Cashless Garages
+              </div>
             </div>
           </div>
         </div>

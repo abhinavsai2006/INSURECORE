@@ -18,6 +18,9 @@ async function authenticate(req, res, next) {
         else if (req.cookies && req.cookies.accessToken) {
             token = req.cookies.accessToken;
         }
+        else if (req.query && req.query.token) {
+            token = req.query.token;
+        }
         if (!token) {
             return res.status(401).json({
                 error: { code: 'UNAUTHORIZED', message: 'Authentication token missing' },

@@ -13,4 +13,6 @@ router.get('/:id', policy_controller_1.getPolicyById);
 router.post('/:id/renew', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), policy_controller_1.renewPolicy);
 router.post('/:id/cancel', (0, auth_1.authorize)([shared_1.Role.ADMIN, shared_1.Role.AGENT]), policy_controller_1.cancelPolicy);
 router.get('/:id/pdf', policy_controller_1.downloadPolicyPDF);
+router.get('/:id/tax-certificate', policy_controller_1.downloadTaxCertificatePDF);
+router.get('/:id/health-card', policy_controller_1.downloadHealthCardPDF);
 exports.default = router;

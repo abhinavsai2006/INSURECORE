@@ -10,5 +10,7 @@ router.use(authenticate, authorize([Role.ADMIN, Role.AGENT]));
 router.get('/overview', getOverviewReport);
 router.get('/export/excel', exportExcelReport);
 router.get('/export/pdf', exportPDFReport);
+router.get('/policies/export', exportPDFReport);
+router.get('/customers/export', exportPDFReport);
 
 export default router;

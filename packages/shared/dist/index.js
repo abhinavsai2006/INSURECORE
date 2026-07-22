@@ -40,9 +40,13 @@ __export(index_exports, {
 module.exports = __toCommonJS(index_exports);
 var import_zod = require("zod");
 var Role = /* @__PURE__ */ ((Role2) => {
+  Role2["SUPER_ADMIN"] = "SUPER_ADMIN";
   Role2["ADMIN"] = "ADMIN";
   Role2["AGENT"] = "AGENT";
   Role2["CUSTOMER"] = "CUSTOMER";
+  Role2["CLAIMS_OFFICER"] = "CLAIMS_OFFICER";
+  Role2["UNDERWRITER"] = "UNDERWRITER";
+  Role2["CUSTOMER_SUPPORT"] = "CUSTOMER_SUPPORT";
   return Role2;
 })(Role || {});
 var PolicyStatus = /* @__PURE__ */ ((PolicyStatus2) => {
@@ -93,7 +97,9 @@ var PaymentMethod = /* @__PURE__ */ ((PaymentMethod2) => {
   PaymentMethod2["CARD"] = "CARD";
   PaymentMethod2["UPI"] = "UPI";
   PaymentMethod2["BANK_TRANSFER"] = "BANK_TRANSFER";
+  PaymentMethod2["NETBANKING"] = "NETBANKING";
   PaymentMethod2["CASH"] = "CASH";
+  PaymentMethod2["EMI"] = "EMI";
   return PaymentMethod2;
 })(PaymentMethod || {});
 var loginSchema = import_zod.z.object({
@@ -134,8 +140,8 @@ var createPolicySchema = import_zod.z.object({
   agentId: import_zod.z.string().optional().nullable(),
   policyType: import_zod.z.nativeEnum(PolicyType),
   planName: import_zod.z.string().min(2, "Plan name is required"),
-  sumInsured: import_zod.z.number().positive("Sum insured must be positive"),
-  premiumAmount: import_zod.z.number().positive("Premium amount must be positive"),
+  sumInsured: import_zod.z.number().or(import_zod.z.string().transform((v) => parseFloat(v))).pipe(import_zod.z.number().positive("Sum insured must be positive")),
+  premiumAmount: import_zod.z.number().or(import_zod.z.string().transform((v) => parseFloat(v))).pipe(import_zod.z.number().positive("Premium amount must be positive")),
   premiumFrequency: import_zod.z.nativeEnum(PremiumFrequency),
   startDate: import_zod.z.string().or(import_zod.z.date()).transform((val) => new Date(val)),
   endDate: import_zod.z.string().or(import_zod.z.date()).transform((val) => new Date(val)),
@@ -143,7 +149,7 @@ var createPolicySchema = import_zod.z.object({
 });
 var createClaimSchema = import_zod.z.object({
   policyId: import_zod.z.string().min(1, "Policy selection is required"),
-  claimAmount: import_zod.z.number().positive("Claim amount must be positive"),
+  claimAmount: import_zod.z.number().or(import_zod.z.string().transform((v) => parseFloat(v))).pipe(import_zod.z.number().positive("Claim amount must be positive")),
   reason: import_zod.z.string().min(5, "Reason for claim is required"),
   description: import_zod.z.string().optional()
 });
@@ -154,8 +160,8 @@ var updateClaimStatusSchema = import_zod.z.object({
 });
 var createPaymentSchema = import_zod.z.object({
   policyId: import_zod.z.string().min(1, "Policy ID is required"),
-  amount: import_zod.z.number().positive("Amount must be positive"),
-  method: import_zod.z.nativeEnum(PaymentMethod),
+  amount: import_zod.z.number().or(import_zod.z.string().transform((v) => parseFloat(v))).pipe(import_zod.z.number().positive("Amount must be positive")),
+  method: import_zod.z.string().transform((v) => v.toUpperCase()),
   transactionRef: import_zod.z.string().optional()
 });
 // Annotate the CommonJS export names for ESM import in node:
