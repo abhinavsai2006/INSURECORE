@@ -43,58 +43,20 @@ async function getPolicies(req, res, next) {
             });
         }
         const where = conditions.length > 0 ? { AND: conditions } : {};
-        let policies = [];
-        let total = 0;
-        try {
-            [total, policies] = await Promise.all([
-                db_1.db.policy.count({ where }),
-                db_1.db.policy.findMany({
-                    where,
-                    skip: (page - 1) * limit,
-                    take: limit,
-                    orderBy: { createdAt: 'desc' },
-                    include: {
-                        customer: { select: { id: true, name: true, email: true, phone: true } },
-                        agent: { select: { id: true, name: true, email: true } },
-                        _count: { select: { claims: true, payments: true } },
-                    },
-                }),
-            ]);
-        }
-        catch (dbErr) {
-            console.warn('DB query failed in getPolicies, returning fallback policies:', dbErr);
-        }
-        if (policies.length === 0) {
-            policies = [
-                {
-                    id: 'pol_1',
-                    policyNumber: 'POL-2026-000101',
-                    policyType: 'HEALTH',
-                    planName: 'Executive Comprehensive Health Shield',
-                    sumInsured: 250000,
-                    premiumAmount: 1450,
-                    premiumFrequency: 'YEARLY',
-                    startDate: new Date(),
-                    endDate: new Date(Date.now() + 365 * 24 * 3600 * 1000),
-                    status: 'ACTIVE',
-                    customer: { name: 'David Vance', email: 'customer@insurecore.com' },
+        const [total, policies] = await Promise.all([
+            db_1.db.policy.count({ where }),
+            db_1.db.policy.findMany({
+                where,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    customer: { select: { id: true, name: true, email: true, phone: true } },
+                    agent: { select: { id: true, name: true, email: true } },
+                    _count: { select: { claims: true, payments: true } },
                 },
-                {
-                    id: 'pol_2',
-                    policyNumber: 'POL-2026-000102',
-                    policyType: 'LIFE',
-                    planName: 'Term Platinum Guarantee Policy',
-                    sumInsured: 1000000,
-                    premiumAmount: 2400,
-                    premiumFrequency: 'YEARLY',
-                    startDate: new Date(),
-                    endDate: new Date(Date.now() + 365 * 24 * 3600 * 1000),
-                    status: 'ACTIVE',
-                    customer: { name: 'Emma Watson', email: 'emma.w@example.com' },
-                },
-            ];
-            total = policies.length;
-        }
+            }),
+        ]);
         return res.json({
             data: policies,
             pagination: {
@@ -165,55 +127,57 @@ async function createPolicy(req, res, next) {
             customerId,
         };
         const input = shared_1.createPolicySchema.parse(payload);
-        let policy = null;
+        const count = await db_1.db.policy.count();
         const year = new Date().getFullYear();
-        const seq = String(Math.floor(100000 + Math.random() * 900000));
+        const seq = String(count + 1).padStart(6, '0');
         const policyNumber = `POL-${year}-${seq}`;
-        try {
-            policy = await db_1.db.policy.create({
-                data: {
-                    policyNumber,
-                    customerId: input.customerId || `cust_${Date.now()}`,
-                    agentId: input.agentId || (req.user?.role === shared_1.Role.AGENT ? req.user.id : null),
-                    policyType: input.policyType || 'HEALTH',
-                    planName: input.planName || 'Comprehensive Health Shield',
-                    sumInsured: input.sumInsured || 250000,
-                    premiumAmount: input.premiumAmount || 1450,
-                    premiumFrequency: input.premiumFrequency || 'YEARLY',
-                    startDate: input.startDate ? new Date(input.startDate) : new Date(),
-                    endDate: input.endDate ? new Date(input.endDate) : new Date(Date.now() + 365 * 24 * 3600 * 1000),
-                    status: shared_1.PolicyStatus.ACTIVE,
-                    nominee: input.nominee,
-                },
-                include: {
-                    customer: true,
-                    agent: true,
-                },
-            });
+        // Get or assign real customerId
+        let targetCustomerId = input.customerId;
+        if (!targetCustomerId) {
+            if (req.user?.customerId) {
+                targetCustomerId = req.user.customerId;
+            }
+            else {
+                const firstCust = await db_1.db.customer.findFirst();
+                targetCustomerId = firstCust?.id;
+            }
         }
-        catch (dbErr) {
-            console.warn('DB create failed in createPolicy, returning fail-safe policy object:', dbErr);
+        if (!targetCustomerId) {
+            return res.status(400).json({ error: { code: 'CUSTOMER_REQUIRED', message: 'Valid customer is required for policy issuance' } });
         }
-        if (!policy) {
-            policy = {
-                id: `pol_${Date.now()}`,
+        const policy = await db_1.db.policy.create({
+            data: {
                 policyNumber,
+                customerId: targetCustomerId,
+                agentId: input.agentId || (req.user?.role === shared_1.Role.AGENT ? req.user.id : null),
                 policyType: input.policyType || 'HEALTH',
                 planName: input.planName || 'Comprehensive Health Shield',
                 sumInsured: input.sumInsured || 250000,
                 premiumAmount: input.premiumAmount || 1450,
                 premiumFrequency: input.premiumFrequency || 'YEARLY',
-                startDate: new Date().toISOString(),
-                endDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
-                status: 'ACTIVE',
-                customer: { name: req.user?.name || 'Alexander Pierce', email: req.user?.email || 'admin@insurecore.com' },
-            };
-        }
-        try {
-            await (0, audit_1.logAudit)(req.user?.id || 'usr_demo', 'CREATE_POLICY', 'Policy', policy.id, { policyNumber });
-        }
-        catch (auditErr) {
-            console.warn('Audit log warning:', auditErr);
+                startDate: input.startDate ? new Date(input.startDate) : new Date(),
+                endDate: input.endDate ? new Date(input.endDate) : new Date(Date.now() + 365 * 24 * 3600 * 1000),
+                status: shared_1.PolicyStatus.ACTIVE,
+                nominee: input.nominee,
+                payments: {
+                    create: {
+                        amount: input.premiumAmount || 1450,
+                        dueDate: input.startDate ? new Date(input.startDate) : new Date(),
+                        paymentDate: new Date(),
+                        paymentStatus: shared_1.PaymentStatus.PAID,
+                        method: 'CARD',
+                        transactionRef: `TXN-POL-${Date.now()}`,
+                    },
+                },
+            },
+            include: {
+                customer: true,
+                agent: true,
+                payments: true,
+            },
+        });
+        if (req.user?.id) {
+            await (0, audit_1.logAudit)(req.user.id, 'CREATE_POLICY', 'Policy', policy.id, { policyNumber });
         }
         return res.status(201).json({
             data: policy,
@@ -221,24 +185,7 @@ async function createPolicy(req, res, next) {
         });
     }
     catch (err) {
-        const year = new Date().getFullYear();
-        const policyNumber = `POL-${year}-${Math.floor(100000 + Math.random() * 900000)}`;
-        return res.status(201).json({
-            data: {
-                id: `pol_${Date.now()}`,
-                policyNumber,
-                policyType: req.body?.policyType || 'HEALTH',
-                planName: req.body?.planName || 'Comprehensive Health Shield',
-                sumInsured: req.body?.sumInsured || 250000,
-                premiumAmount: req.body?.premiumAmount || 1450,
-                premiumFrequency: 'YEARLY',
-                startDate: new Date().toISOString(),
-                endDate: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
-                status: 'ACTIVE',
-                customer: { name: 'David Vance', email: 'customer@insurecore.com' },
-            },
-            message: `Policy ${policyNumber} issued successfully (Resilient fallback)`,
-        });
+        next(err);
     }
 }
 async function getPolicyById(req, res, next) {

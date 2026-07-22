@@ -6,44 +6,32 @@ import PDFDocument from 'pdfkit';
 
 export async function getOverviewReport(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    let activePolicies = 1240;
-    let totalCustomers = 3890;
-    let openClaims = 42;
-    let overduePaymentsCount = 8;
-    let allPayments: any[] = [];
-    let claimsByStatus: any[] = [];
-    let policiesByType: any[] = [];
-
-    try {
-      [
-        activePolicies,
-        totalCustomers,
-        openClaims,
-        overduePaymentsCount,
-        allPayments,
-        claimsByStatus,
-        policiesByType,
-      ] = await Promise.all([
-        db.policy.count({ where: { status: 'ACTIVE' } }),
-        db.customer.count(),
-        db.claim.count({ where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } } }),
-        db.payment.count({ where: { paymentStatus: 'OVERDUE' } }),
-        db.payment.findMany({
-          where: { paymentStatus: 'PAID' },
-          select: { amount: true, paymentDate: true },
-        }),
-        db.claim.groupBy({
-          by: ['status'],
-          _count: { id: true },
-        }),
-        db.policy.groupBy({
-          by: ['policyType'],
-          _count: { id: true },
-        }),
-      ]);
-    } catch (dbErr) {
-      console.warn('DB query failed in getOverviewReport, using fallback KPIs:', dbErr);
-    }
+    const [
+      activePolicies,
+      totalCustomers,
+      openClaims,
+      overduePaymentsCount,
+      allPayments,
+      claimsByStatus,
+      policiesByType,
+    ] = await Promise.all([
+      db.policy.count({ where: { status: 'ACTIVE' } }),
+      db.customer.count(),
+      db.claim.count({ where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } } }),
+      db.payment.count({ where: { paymentStatus: 'OVERDUE' } }),
+      db.payment.findMany({
+        where: { paymentStatus: 'PAID' },
+        select: { amount: true, paymentDate: true },
+      }),
+      db.claim.groupBy({
+        by: ['status'],
+        _count: { id: true },
+      }),
+      db.policy.groupBy({
+        by: ['policyType'],
+        _count: { id: true },
+      }),
+    ]);
 
     const totalPremiumCollected = allPayments.reduce((acc: number, p: any) => acc + p.amount, 0);
 

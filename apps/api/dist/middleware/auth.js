@@ -4,7 +4,6 @@ exports.authenticate = authenticate;
 exports.authorize = authorize;
 const config_1 = require("../config");
 const db_1 = require("../db");
-const shared_1 = require("../types/shared");
 async function authenticate(req, res, next) {
     try {
         const authHeader = req.headers.authorization;
@@ -19,75 +18,48 @@ async function authenticate(req, res, next) {
             token = req.query.token;
         }
         if (!token) {
-            // Production resilience fallback for unauthenticated requests
-            req.user = {
-                id: 'usr_demo',
-                email: 'admin@insurecore.com',
-                role: shared_1.Role.ADMIN,
-                name: 'Demo Admin',
-                customerId: 'cust_demo',
-            };
-            return next();
+            return res.status(401).json({
+                error: { code: 'UNAUTHORIZED', message: 'Authentication token required' },
+            });
         }
-        let payload = null;
-        try {
-            const jwt = require('jsonwebtoken');
-            payload = jwt.verify(token, config_1.config.jwtSecret || 'insurecore-jwt-secret');
+        const jwt = require('jsonwebtoken');
+        const secret = config_1.config.jwtSecret || process.env.JWT_SECRET || 'insurecore-jwt-secret';
+        const payload = jwt.verify(token, secret);
+        const user = await db_1.db.user.findUnique({
+            where: { id: payload.id },
+            include: { customer: true },
+        });
+        if (!user || !user.isActive) {
+            return res.status(401).json({
+                error: { code: 'UNAUTHORIZED', message: 'User account not active or found' },
+            });
         }
-        catch (jwtErr) {
-            console.warn('JWT verify fallback:', jwtErr);
-        }
-        if (payload && payload.id) {
-            let user = null;
-            try {
-                user = await db_1.db.user.findUnique({
-                    where: { id: payload.id },
-                    include: { customer: true },
-                });
-            }
-            catch (dbErr) {
-                console.warn('Database findUnique failed in auth middleware:', dbErr);
-            }
-            req.user = {
-                id: user?.id || payload.id,
-                email: user?.email || payload.email || 'admin@insurecore.com',
-                role: (user?.role || payload.role || shared_1.Role.ADMIN),
-                name: user?.name || payload.name || 'Demo User',
-                customerId: user?.customer?.id || null,
-            };
-        }
-        else {
-            req.user = {
-                id: 'usr_demo',
-                email: 'admin@insurecore.com',
-                role: shared_1.Role.ADMIN,
-                name: 'Demo Admin',
-                customerId: 'cust_demo',
-            };
-        }
+        req.user = {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            name: user.name,
+            customerId: user.customer?.id || null,
+        };
         next();
     }
     catch (err) {
-        req.user = {
-            id: 'usr_demo',
-            email: 'admin@insurecore.com',
-            role: shared_1.Role.ADMIN,
-            name: 'Demo Admin',
-            customerId: 'cust_demo',
-        };
-        next();
+        return res.status(401).json({
+            error: { code: 'UNAUTHORIZED', message: 'Invalid or expired authentication token' },
+        });
     }
 }
 function authorize(allowedRoles) {
     return (req, res, next) => {
         if (!req.user) {
-            req.user = {
-                id: 'usr_demo',
-                email: 'admin@insurecore.com',
-                role: shared_1.Role.ADMIN,
-                name: 'Demo Admin',
-                customerId: 'cust_demo',
-            };
+            return res.status(401).json({
+                error: { code: 'UNAUTHORIZED', message: 'Authentication required' },
+            });
+        }
+        if (!allowedRoles.includes(req.user.role)) {
+            return res.status(403).json({
+                error: { code: 'FORBIDDEN', message: 'Insufficient role permissions' },
+            });
         }
         next();
     };

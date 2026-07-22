@@ -11,44 +11,24 @@ const export_1 = require("../services/export");
 const pdfkit_1 = __importDefault(require("pdfkit"));
 async function getOverviewReport(req, res, next) {
     try {
-        let activePolicies = 1240;
-        let totalCustomers = 3890;
-        let openClaims = 42;
-        let overduePaymentsCount = 8;
-        let allPayments = [];
-        let claimsByStatus = [];
-        let policiesByType = [];
-        try {
-            [
-                activePolicies,
-                totalCustomers,
-                openClaims,
-                overduePaymentsCount,
-                allPayments,
-                claimsByStatus,
-                policiesByType,
-            ] = await Promise.all([
-                db_1.db.policy.count({ where: { status: 'ACTIVE' } }),
-                db_1.db.customer.count(),
-                db_1.db.claim.count({ where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } } }),
-                db_1.db.payment.count({ where: { paymentStatus: 'OVERDUE' } }),
-                db_1.db.payment.findMany({
-                    where: { paymentStatus: 'PAID' },
-                    select: { amount: true, paymentDate: true },
-                }),
-                db_1.db.claim.groupBy({
-                    by: ['status'],
-                    _count: { id: true },
-                }),
-                db_1.db.policy.groupBy({
-                    by: ['policyType'],
-                    _count: { id: true },
-                }),
-            ]);
-        }
-        catch (dbErr) {
-            console.warn('DB query failed in getOverviewReport, using fallback KPIs:', dbErr);
-        }
+        const [activePolicies, totalCustomers, openClaims, overduePaymentsCount, allPayments, claimsByStatus, policiesByType,] = await Promise.all([
+            db_1.db.policy.count({ where: { status: 'ACTIVE' } }),
+            db_1.db.customer.count(),
+            db_1.db.claim.count({ where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } } }),
+            db_1.db.payment.count({ where: { paymentStatus: 'OVERDUE' } }),
+            db_1.db.payment.findMany({
+                where: { paymentStatus: 'PAID' },
+                select: { amount: true, paymentDate: true },
+            }),
+            db_1.db.claim.groupBy({
+                by: ['status'],
+                _count: { id: true },
+            }),
+            db_1.db.policy.groupBy({
+                by: ['policyType'],
+                _count: { id: true },
+            }),
+        ]);
         const totalPremiumCollected = allPayments.reduce((acc, p) => acc + p.amount, 0);
         // Monthly trends (12 months)
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

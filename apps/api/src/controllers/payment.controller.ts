@@ -29,48 +29,22 @@ export async function getPayments(req: AuthRequest, res: Response, next: NextFun
       ];
     }
 
-    let payments: any[] = [];
-    let total = 0;
-
-    try {
-      [total, payments] = await Promise.all([
-        db.payment.count({ where }),
-        db.payment.findMany({
-          where,
-          take: limit,
-          skip: (page - 1) * limit,
-          orderBy: { dueDate: 'desc' },
-          include: {
-            policy: {
-              include: {
-                customer: { select: { name: true, email: true } },
-              },
+    const [total, payments] = await Promise.all([
+      db.payment.count({ where }),
+      db.payment.findMany({
+        where,
+        take: limit,
+        skip: (page - 1) * limit,
+        orderBy: { dueDate: 'desc' },
+        include: {
+          policy: {
+            include: {
+              customer: { select: { name: true, email: true } },
             },
           },
-        }),
-      ]);
-    } catch (dbErr) {
-      console.warn('DB query failed in getPayments, returning fallback payments:', dbErr);
-    }
-
-    if (payments.length === 0) {
-      payments = [
-        {
-          id: 'pay_1',
-          amount: 1450,
-          paymentStatus: 'PAID',
-          dueDate: new Date(),
-          paymentDate: new Date(),
-          method: 'CARD',
-          transactionRef: 'TXN-INIT-1',
-          policy: {
-            policyNumber: 'POL-2026-000101',
-            customer: { name: 'David Vance', email: 'customer@insurecore.com' },
-          },
         },
-      ];
-      total = payments.length;
-    }
+      }),
+    ]);
 
     return res.json({
       data: payments,
@@ -89,62 +63,34 @@ export async function getPayments(req: AuthRequest, res: Response, next: NextFun
 export async function createPayment(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const input = createPaymentSchema.parse(req.body);
-
-    let payment: any = null;
     const transactionRef = input.transactionRef || `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-    try {
-      payment = await db.payment.create({
-        data: {
-          policyId: input.policyId,
-          amount: input.amount,
-          dueDate: new Date(),
-          paymentDate: new Date(),
-          paymentStatus: PaymentStatus.PAID,
-          method: input.method,
-          transactionRef,
-        },
-        include: {
-          policy: { include: { customer: true } },
-        },
-      });
-
-      // Automatically update Policy status to ACTIVE on successful payment
-      await db.policy.update({
-        where: { id: input.policyId },
-        data: { status: PolicyStatus.ACTIVE },
-      }).catch((e: any) => console.warn('Policy status update warning:', e));
-
-    } catch (dbErr) {
-      console.warn('Database create failed in createPayment, using fail-safe payment record:', dbErr);
-    }
-
-    if (!payment) {
-      payment = {
-        id: `pay_${Date.now()}`,
+    const payment = await db.payment.create({
+      data: {
         policyId: input.policyId,
         amount: input.amount,
         dueDate: new Date(),
         paymentDate: new Date(),
-        paymentStatus: 'PAID',
+        paymentStatus: PaymentStatus.PAID,
         method: input.method,
         transactionRef,
-        policy: {
-          id: input.policyId,
-          policyNumber: `POL-2026-${Math.floor(100000 + Math.random() * 900000)}`,
-          status: 'ACTIVE',
-          customer: { name: req.user?.name || 'Alexander Pierce', email: req.user?.email || 'admin@insurecore.com' },
-        },
-      };
-    }
+      },
+      include: {
+        policy: { include: { customer: true } },
+      },
+    });
 
-    try {
-      await logAudit(req.user?.id || 'usr_demo', 'CREATE_PAYMENT', 'Payment', payment.id, {
+    // Automatically update Policy status to ACTIVE on successful payment
+    await db.policy.update({
+      where: { id: input.policyId },
+      data: { status: PolicyStatus.ACTIVE },
+    }).catch((e: any) => console.warn('Policy status update warning:', e));
+
+    if (req.user?.id) {
+      await logAudit(req.user.id, 'CREATE_PAYMENT', 'Payment', payment.id, {
         amount: input.amount,
         transactionRef,
       });
-    } catch (auditErr) {
-      console.warn('Audit log warning:', auditErr);
     }
 
     return res.status(201).json({
@@ -152,26 +98,7 @@ export async function createPayment(req: AuthRequest, res: Response, next: NextF
       message: 'Payment recorded successfully and policy activated',
     });
   } catch (err) {
-    const transactionRef = req.body?.transactionRef || `TXN-${Date.now()}`;
-    return res.status(201).json({
-      data: {
-        id: `pay_${Date.now()}`,
-        policyId: req.body?.policyId || 'pol_1',
-        amount: req.body?.amount || 1450,
-        dueDate: new Date(),
-        paymentDate: new Date(),
-        paymentStatus: 'PAID',
-        method: req.body?.method || 'CARD',
-        transactionRef,
-        policy: {
-          id: req.body?.policyId || 'pol_1',
-          policyNumber: 'POL-2026-000101',
-          status: 'ACTIVE',
-          customer: { name: 'David Vance', email: 'customer@insurecore.com' },
-        },
-      },
-      message: 'Payment recorded successfully and policy activated (Resilient fallback)',
-    });
+    next(err);
   }
 }
 

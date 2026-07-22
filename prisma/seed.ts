@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const db = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding InsureCore database...');
+  console.log('🌱 Seeding InsureCore production database...');
 
   // Reset existing data
   await db.notification.deleteMany({});
@@ -16,7 +16,7 @@ async function main() {
   await db.customer.deleteMany({});
   await db.user.deleteMany({});
 
-  const passwordHash = await bcrypt.hash('Password123!', 12);
+  const passwordHash = await bcrypt.hash('Password123!', 10);
 
   // 1. Create Admin
   const admin = await db.user.create({
@@ -77,14 +77,14 @@ async function main() {
     },
   });
 
-  // 4. Create additional customers
+  // 4. Create additional professional customers
   const sampleCustomersData = [
+    { name: 'Ananya Deshmukh', email: 'ananya.d@example.com', phone: '+91 98201 55443', city: 'Mumbai', state: 'Maharashtra' },
     { name: 'Emma Watson', email: 'emma.w@example.com', phone: '+1 (555) 234-5678', city: 'Chicago', state: 'IL' },
     { name: 'Michael Brown', email: 'm.brown@example.com', phone: '+1 (555) 345-6789', city: 'New York', state: 'NY' },
     { name: 'Sophia Martinez', email: 'sophia.m@example.com', phone: '+1 (555) 456-7890', city: 'Austin', state: 'TX' },
     { name: 'James Wilson', email: 'j.wilson@example.com', phone: '+1 (555) 567-8901', city: 'Seattle', state: 'WA' },
     { name: 'Olivia Taylor', email: 'olivia.t@example.com', phone: '+1 (555) 678-9012', city: 'Denver', state: 'CO' },
-    { name: 'Liam Anderson', email: 'liam.a@example.com', phone: '+1 (555) 789-0123', city: 'Miami', state: 'FL' },
   ];
 
   const customers = [demoCustomer];
@@ -95,7 +95,7 @@ async function main() {
         name: c.name,
         email: c.email,
         phone: c.phone,
-        address: '100 Main St',
+        address: '100 Business District Ave',
         city: c.city,
         state: c.state,
         pincode: '10001',
@@ -166,6 +166,19 @@ async function main() {
       },
     });
     createdPolicies.push(pol);
+
+    // Create associated document for each policy
+    await db.document.create({
+      data: {
+        fileName: `${pol.policyNumber}_schedule.pdf`,
+        filePath: `/uploads/${pol.policyNumber}_schedule.pdf`,
+        fileType: 'application/pdf',
+        fileSizeKb: 350,
+        docCategory: 'POLICY',
+        customerId: cust.id,
+        policyId: pol.id,
+      },
+    });
   }
 
   // 6. Create Claims
@@ -207,9 +220,15 @@ async function main() {
     },
   });
 
-  // 8. Demo Notifications for Demo Customer
+  // 8. Notifications for Demo Users
   await db.notification.createMany({
     data: [
+      {
+        userId: admin.id,
+        title: 'System Bootstrap Complete',
+        message: 'InsureCore Fortune 500 platform initialized with live telemetry & live database.',
+        isRead: false,
+      },
       {
         userId: demoCustomerUser.id,
         title: 'Policy Active',
@@ -218,18 +237,18 @@ async function main() {
       },
       {
         userId: demoCustomerUser.id,
-        title: 'Premium Reminder',
-        message: 'Upcoming annual premium payment of $1,450 is scheduled for next month.',
-        isRead: false,
+        title: 'Premium Payment Received',
+        message: 'Annual premium of ₹14,500 successfully recorded via PCI-DSS encrypted checkout.',
+        isRead: true,
       },
     ],
   });
 
-  console.log('✅ InsureCore database seed successfully executed!');
+  console.log('✅ InsureCore production database seed successfully executed!');
   console.log('----------------------------------------------------');
   console.log('Demo Credentials:');
   console.log('  Admin:    admin@insurecore.com    / Password123!');
-  console.log('  Agent:    agent.john@insurecore.com / Password123!');
+  console.log('  Agent:    agent@insurecore.com    / Password123!');
   console.log('  Customer: customer@insurecore.com  / Password123!');
   console.log('----------------------------------------------------');
 }

@@ -35,64 +35,23 @@ export async function getClaims(req: AuthRequest, res: Response, next: NextFunct
 
     const where = conditions.length > 0 ? { AND: conditions } : {};
 
-    let claims: any[] = [];
-    let total = 0;
-
-    try {
-      [total, claims] = await Promise.all([
-        db.claim.count({ where }),
-        db.claim.findMany({
-          where,
-          take: limit,
-          skip: (page - 1) * limit,
-          orderBy: { submissionDate: 'desc' },
-          include: {
-            policy: {
-              include: {
-                customer: { select: { id: true, name: true, email: true } },
-              },
+    const [total, claims] = await Promise.all([
+      db.claim.count({ where }),
+      db.claim.findMany({
+        where,
+        take: limit,
+        skip: (page - 1) * limit,
+        orderBy: { submissionDate: 'desc' },
+        include: {
+          policy: {
+            include: {
+              customer: { select: { id: true, name: true, email: true } },
             },
-            reviewedBy: { select: { id: true, name: true } },
           },
-        }),
-      ]);
-    } catch (dbErr) {
-      console.warn('DB query failed in getClaims, returning fallback claims:', dbErr);
-    }
-
-    if (claims.length === 0) {
-      claims = [
-        {
-          id: 'clm_1',
-          claimNumber: 'CLM-2026-000001',
-          claimAmount: 3200,
-          approvedAmount: null,
-          reason: 'Accidental Vehicle Collision Rear Bumper Damage',
-          status: 'UNDER_REVIEW',
-          submissionDate: new Date(),
-          policy: {
-            policyNumber: 'POL-2026-000101',
-            planName: 'Full Vehicle Collision Cover',
-            customer: { name: 'David Vance', email: 'customer@insurecore.com' },
-          },
+          reviewedBy: { select: { id: true, name: true } },
         },
-        {
-          id: 'clm_2',
-          claimNumber: 'CLM-2026-000002',
-          claimAmount: 8500,
-          approvedAmount: 8000,
-          reason: 'Emergency Hospitalization Medical Bill Reimbursement',
-          status: 'APPROVED',
-          submissionDate: new Date(),
-          policy: {
-            policyNumber: 'POL-2026-000102',
-            planName: 'Executive Comprehensive Health Shield',
-            customer: { name: 'Emma Watson', email: 'emma.w@example.com' },
-          },
-        },
-      ];
-      total = claims.length;
-    }
+      }),
+    ]);
 
     return res.json({
       data: claims,
@@ -112,51 +71,27 @@ export async function createClaim(req: AuthRequest, res: Response, next: NextFun
   try {
     const input = createClaimSchema.parse(req.body);
 
-    let claim: any = null;
+    const count = await db.claim.count();
     const year = new Date().getFullYear();
-    const seq = String(Math.floor(100000 + Math.random() * 900000));
+    const seq = String(count + 1).padStart(6, '0');
     const claimNumber = `CLM-${year}-${seq}`;
 
-    try {
-      claim = await db.claim.create({
-        data: {
-          claimNumber,
-          policyId: input.policyId,
-          claimAmount: input.claimAmount,
-          reason: input.reason,
-          description: input.description,
-          status: ClaimStatus.SUBMITTED,
-        },
-        include: {
-          policy: { include: { customer: true } },
-        },
-      });
-    } catch (dbErr) {
-      console.warn('DB create failed in createClaim, returning fail-safe claim object:', dbErr);
-    }
-
-    if (!claim) {
-      claim = {
-        id: `clm_${Date.now()}`,
+    const claim = await db.claim.create({
+      data: {
         claimNumber,
+        policyId: input.policyId,
         claimAmount: input.claimAmount,
-        approvedAmount: null,
-        reason: input.reason || 'Insurance Claim Request',
-        status: 'SUBMITTED',
-        submissionDate: new Date().toISOString(),
-        policy: {
-          id: input.policyId,
-          policyNumber: 'POL-2026-000101',
-          planName: 'Comprehensive Shield',
-          customer: { name: req.user?.name || 'Alexander Pierce', email: req.user?.email || 'admin@insurecore.com' },
-        },
-      };
-    }
+        reason: input.reason,
+        description: input.description,
+        status: ClaimStatus.SUBMITTED,
+      },
+      include: {
+        policy: { include: { customer: true } },
+      },
+    });
 
-    try {
-      await logAudit(req.user?.id || 'usr_demo', 'SUBMIT_CLAIM', 'Claim', claim.id, { claimNumber, amount: input.claimAmount });
-    } catch (auditErr) {
-      console.warn('Audit log warning:', auditErr);
+    if (req.user?.id) {
+      await logAudit(req.user.id, 'SUBMIT_CLAIM', 'Claim', claim.id, { claimNumber, amount: input.claimAmount });
     }
 
     return res.status(201).json({
@@ -164,25 +99,7 @@ export async function createClaim(req: AuthRequest, res: Response, next: NextFun
       message: `Claim ${claimNumber} submitted successfully`,
     });
   } catch (err) {
-    const year = new Date().getFullYear();
-    const claimNumber = `CLM-${year}-${Math.floor(100000 + Math.random() * 900000)}`;
-    return res.status(201).json({
-      data: {
-        id: `clm_${Date.now()}`,
-        claimNumber,
-        claimAmount: req.body?.claimAmount || 3200,
-        approvedAmount: null,
-        reason: req.body?.reason || 'Insurance Claim Request',
-        status: 'SUBMITTED',
-        submissionDate: new Date().toISOString(),
-        policy: {
-          policyNumber: 'POL-2026-000101',
-          planName: 'Full Coverage Shield',
-          customer: { name: 'David Vance', email: 'customer@insurecore.com' },
-        },
-      },
-      message: `Claim ${claimNumber} submitted successfully (Resilient fallback)`,
-    });
+    next(err);
   }
 }
 
