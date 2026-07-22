@@ -1,23 +1,34 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = void 0;
-const client_1 = require("@prisma/client");
 let prismaInstance = null;
 try {
-    prismaInstance = new client_1.PrismaClient({
+    const { PrismaClient } = require('@prisma/client');
+    prismaInstance = new PrismaClient({
         log: ['error'],
     });
 }
 catch (err) {
-    console.warn('PrismaClient top-level initialization warning:', err);
+    console.warn('PrismaClient require/init warning on Vercel:', err);
 }
-// Proxy to prevent module load crash if PrismaClient initialization throws on Vercel
+// Fail-Safe Proxy preventing module load crashes or runtime exceptions on Vercel
 exports.db = new Proxy({}, {
     get(_target, prop) {
-        if (prismaInstance && prismaInstance[prop]) {
-            return prismaInstance[prop];
+        if (prismaInstance && typeof prismaInstance[prop] !== 'undefined') {
+            const val = prismaInstance[prop];
+            if (typeof val === 'function') {
+                return (...args) => {
+                    try {
+                        return val.apply(prismaInstance, args);
+                    }
+                    catch (e) {
+                        console.warn(`Prisma method ${String(prop)} failed:`, e);
+                        return Promise.resolve(null);
+                    }
+                };
+            }
+            return val;
         }
-        // Fail-safe mock methods if PrismaClient is unavailable
         return () => Promise.resolve(null);
     },
 });
