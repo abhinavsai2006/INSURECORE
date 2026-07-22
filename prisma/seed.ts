@@ -33,7 +33,7 @@ async function main() {
   const agent1 = await db.user.create({
     data: {
       name: 'John Miller (Agent)',
-      email: 'agent.john@insurecore.com',
+      email: 'agent@insurecore.com',
       password: passwordHash,
       role: 'AGENT',
       phone: '+1 (555) 014-8899',

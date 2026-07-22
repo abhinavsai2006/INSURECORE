@@ -36,7 +36,7 @@ export const LoginPage: React.FC = () => {
       setEmail('admin@insurecore.com');
       setPassword('Password123!');
     } else if (role === 'agent') {
-      setEmail('agent.john@insurecore.com');
+      setEmail('agent@insurecore.com');
       setPassword('Password123!');
     } else {
       setEmail('customer@insurecore.com');
