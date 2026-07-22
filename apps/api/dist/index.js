@@ -56,4 +56,6 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
         (0, cron_1.initCronJobs)();
     });
 }
+module.exports = exports.app;
+module.exports.default = exports.app;
 exports.default = exports.app;
