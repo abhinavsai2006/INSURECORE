@@ -10,20 +10,16 @@ import { initCronJobs } from './services/cron';
 
 export const app = express();
 
-// Explicit CORS Headers Middleware for Vercel Cross-Origin Preflight (OPTIONS)
+// Explicit Dynamic CORS Middleware for Vercel Cross-Origin Preflight (OPTIONS)
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    return res.status(204).end();
   }
   next();
 });
@@ -31,7 +27,7 @@ app.use((req, res, next) => {
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(
   cors({
-    origin: true,
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
   })
 );
