@@ -14,6 +14,23 @@ const routes_1 = __importDefault(require("./routes"));
 const errorHandler_1 = require("./middleware/errorHandler");
 const cron_1 = require("./services/cron");
 exports.app = (0, express_1.default)();
+// Explicit CORS Headers Middleware for Vercel Cross-Origin Preflight (OPTIONS)
+exports.app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    else {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+    }
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
 exports.app.use((0, helmet_1.default)({ crossOriginResourcePolicy: false }));
 exports.app.use((0, cors_1.default)({
     origin: true,
