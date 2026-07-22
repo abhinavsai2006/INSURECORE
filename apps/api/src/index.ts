@@ -31,8 +31,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes versioned under /api/v1
+// API Routes multi-prefix mounting for Vercel serverless routing resilience
 app.use('/api/v1', routes);
+app.use('/v1', routes);
+app.use('/api', routes);
 
 // Error Handler
 app.use(errorHandler);

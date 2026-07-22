@@ -30,8 +30,10 @@ exports.app.get('/health', (req, res) => {
 exports.app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
-// API Routes versioned under /api/v1
+// API Routes multi-prefix mounting for Vercel serverless routing resilience
 exports.app.use('/api/v1', routes_1.default);
+exports.app.use('/v1', routes_1.default);
+exports.app.use('/api', routes_1.default);
 // Error Handler
 exports.app.use(errorHandler_1.errorHandler);
 // Start server if executed directly

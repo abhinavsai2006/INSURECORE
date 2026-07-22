@@ -27,6 +27,10 @@
       "dest": "apps/web/assets/$1"
     },
     {
+      "src": "/favicon.svg",
+      "dest": "apps/web/favicon.svg"
+    },
+    {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|json|woff|woff2))",
       "dest": "apps/web/$1"
     },
