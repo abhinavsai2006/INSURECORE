@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+const getBaseUrl = () => {
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (!envUrl) return '/api/v1';
+  return envUrl.endsWith('/api/v1') ? envUrl : `${envUrl.replace(/\/$/, '')}/api/v1`;
+};
+
 export const api = axios.create({
-  baseURL: (import.meta as any).env?.VITE_API_URL || '/api/v1',
+  baseURL: getBaseUrl(),
   withCredentials: true,
 });
 
@@ -20,7 +26,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const res = await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+        const res = await axios.post(`${getBaseUrl()}/auth/refresh`, {}, { withCredentials: true });
         const newToken = res.data.data.token;
         localStorage.setItem('token', newToken);
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -67,7 +73,7 @@ export async function downloadFile(endpointUrl: string, defaultFilename: string)
   } catch (err: any) {
     console.error('File download failed:', err);
     const token = localStorage.getItem('token');
-    const fullUrl = `/api/v1${endpointUrl}${endpointUrl.includes('?') ? '&' : '?'}token=${token}`;
+    const fullUrl = `${getBaseUrl()}${endpointUrl}${endpointUrl.includes('?') ? '&' : '?'}token=${token}`;
     window.open(fullUrl, '_blank');
   }
 }

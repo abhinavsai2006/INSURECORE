@@ -34,6 +34,7 @@ exports.app.get('/api/health', (req, res) => {
 exports.app.use('/api/v1', routes_1.default);
 exports.app.use('/v1', routes_1.default);
 exports.app.use('/api', routes_1.default);
+exports.app.use('/', routes_1.default);
 // Error Handler
 exports.app.use(errorHandler_1.errorHandler);
 // Start server if executed directly
