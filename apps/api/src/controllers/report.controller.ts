@@ -33,22 +33,22 @@ export async function getOverviewReport(req: AuthRequest, res: Response, next: N
       }),
     ]);
 
-    const totalPremiumCollected = allPayments.reduce((acc, p) => acc + p.amount, 0);
+    const totalPremiumCollected = allPayments.reduce((acc: number, p: any) => acc + p.amount, 0);
 
     // Monthly trends (12 months)
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyPremium = months.map((month, idx) => {
-      const monthPayments = allPayments.filter((p) => p.paymentDate && new Date(p.paymentDate).getMonth() === idx);
-      const amount = monthPayments.reduce((sum, p) => sum + p.amount, 0);
+      const monthPayments = allPayments.filter((p: any) => p.paymentDate && new Date(p.paymentDate).getMonth() === idx);
+      const amount = monthPayments.reduce((sum: number, p: any) => sum + p.amount, 0);
       return { month, amount: amount || Math.floor(Math.random() * 25000 + 10000) };
     });
 
-    const formattedClaimsStatus = claimsByStatus.map((c) => ({
+    const formattedClaimsStatus = claimsByStatus.map((c: any) => ({
       name: c.status,
       value: c._count.id,
     }));
 
-    const formattedPolicyTypes = policiesByType.map((p) => ({
+    const formattedPolicyTypes = policiesByType.map((p: any) => ({
       name: p.policyType,
       value: p._count.id,
     }));
@@ -78,7 +78,7 @@ export async function exportExcelReport(req: AuthRequest, res: Response, next: N
       include: { customer: true },
     });
 
-    const exportData = policies.map((p) => ({
+    const exportData = policies.map((p: any) => ({
       'Policy Number': p.policyNumber,
       'Customer Name': p.customer.name,
       'Customer Email': p.customer.email,
