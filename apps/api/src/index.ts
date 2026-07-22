@@ -8,7 +8,7 @@ import routes from './routes';
 import { errorHandler } from './middleware/errorHandler';
 import { initCronJobs } from './services/cron';
 
-const app = express();
+export const app = express();
 
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(
@@ -27,14 +27,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // API Routes versioned under /api/v1
 app.use('/api/v1', routes);
 
 // Error Handler
 app.use(errorHandler);
 
-// Start server
-app.listen(config.port, () => {
-  console.log(`🚀 InsureCore API Server listening on port ${config.port} [${config.nodeEnv}]`);
-  initCronJobs();
-});
+// Start server if executed directly
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(config.port, () => {
+    console.log(`🚀 InsureCore API Server listening on port ${config.port} [${config.nodeEnv}]`);
+    initCronJobs();
+  });
+}
+
+export default app;
