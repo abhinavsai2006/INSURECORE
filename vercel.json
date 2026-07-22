@@ -23,7 +23,12 @@
       "dest": "apps/api/src/index.ts"
     },
     {
-      "handle": "filesystem"
+      "src": "/assets/(.*)",
+      "dest": "apps/web/assets/$1"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|svg|json|woff|woff2))",
+      "dest": "apps/web/$1"
     },
     {
       "src": "/(.*)",
