@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { db } from '../db';
-import { PolicyStatus, PaymentStatus } from '@insurecore/shared';
+import { PolicyStatus, PaymentStatus } from '../types/shared';
 
 export function initCronJobs() {
   // Run daily at midnight

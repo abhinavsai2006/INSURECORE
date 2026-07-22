@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { db } from '../db';
 import { AuthRequest } from '../middleware/auth';
-import { createPolicySchema, PolicyStatus, Role, PaymentStatus } from '@insurecore/shared';
+import { createPolicySchema, PolicyStatus, Role, PaymentStatus } from '../types/shared';
 import { logAudit } from '../services/audit';
 import { generatePolicyPDF, generateTaxCertificatePDF, generateHealthCardPDF } from '../services/pdf';
 

@@ -10,7 +10,7 @@ exports.downloadPolicyPDF = downloadPolicyPDF;
 exports.downloadTaxCertificatePDF = downloadTaxCertificatePDF;
 exports.downloadHealthCardPDF = downloadHealthCardPDF;
 const db_1 = require("../db");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 const audit_1 = require("../services/audit");
 const pdf_1 = require("../services/pdf");
 async function getPolicies(req, res, next) {

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { AuthRequest } from '../middleware/auth';
-import { createAgentSchema, Role } from '@insurecore/shared';
+import { createAgentSchema, Role } from '../types/shared';
 import bcrypt from 'bcryptjs';
 import { logAudit } from '../services/audit';
 

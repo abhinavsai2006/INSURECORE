@@ -11,7 +11,7 @@ import {
   downloadHealthCardPDF,
 } from '../controllers/policy.controller';
 import { authenticate, authorize } from '../middleware/auth';
-import { Role } from '@insurecore/shared';
+import { Role } from '../types/shared';
 
 const router = Router();
 

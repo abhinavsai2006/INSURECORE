@@ -10,7 +10,7 @@ exports.updateUser = updateUser;
 exports.deleteUser = deleteUser;
 exports.toggleUserActive = toggleUserActive;
 const db_1 = require("../db");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const audit_1 = require("../services/audit");
 async function getUsers(req, res, next) {

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { config } from '../config';
 import { db } from '../db';
-import { Role } from '@insurecore/shared';
+import { Role } from '../types/shared';
 
 export interface AuthRequest extends Request {
   user?: {

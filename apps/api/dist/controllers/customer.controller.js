@@ -9,7 +9,7 @@ exports.getCustomerById = getCustomerById;
 exports.updateCustomer = updateCustomer;
 exports.getCustomerHistory = getCustomerHistory;
 const db_1 = require("../db");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const audit_1 = require("../services/audit");
 async function getCustomers(req, res, next) {

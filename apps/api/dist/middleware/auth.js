@@ -4,7 +4,7 @@ exports.authenticate = authenticate;
 exports.authorize = authorize;
 const config_1 = require("../config");
 const db_1 = require("../db");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 async function authenticate(req, res, next) {
     try {
         const authHeader = req.headers.authorization;

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getUsers, createUser, toggleUserActive } from '../controllers/user.controller';
 import { authenticate, authorize } from '../middleware/auth';
-import { Role } from '@insurecore/shared';
+import { Role } from '../types/shared';
 
 const router = Router();
 

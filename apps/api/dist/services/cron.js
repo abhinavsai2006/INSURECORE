@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.initCronJobs = initCronJobs;
 const node_cron_1 = __importDefault(require("node-cron"));
 const db_1 = require("../db");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 function initCronJobs() {
     // Run daily at midnight
     node_cron_1.default.schedule('0 0 * * *', async () => {

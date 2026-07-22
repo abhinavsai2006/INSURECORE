@@ -11,7 +11,7 @@ exports.logout = logout;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const db_1 = require("../db");
 const config_1 = require("../config");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 // Safe jsonwebtoken helper for CommonJS/ESM Vercel compatibility
 const safeSignToken = (payload) => {
     try {

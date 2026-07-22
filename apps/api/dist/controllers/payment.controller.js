@@ -6,7 +6,7 @@ exports.getOverduePayments = getOverduePayments;
 exports.markPaid = markPaid;
 exports.downloadReceiptPDF = downloadReceiptPDF;
 const db_1 = require("../db");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 const audit_1 = require("../services/audit");
 const pdf_1 = require("../services/pdf");
 async function getPayments(req, res, next) {

@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { db } from '../db';
 import { AuthRequest } from '../middleware/auth';
-import { createClaimSchema, updateClaimStatusSchema, ClaimStatus, Role } from '@insurecore/shared';
+import { createClaimSchema, updateClaimStatusSchema, ClaimStatus, Role } from '../types/shared';
 import { logAudit } from '../services/audit';
 
 export async function getClaims(req: AuthRequest, res: Response, next: NextFunction) {

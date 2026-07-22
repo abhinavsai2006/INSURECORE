@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import { db } from '../db';
 import { config } from '../config';
-import { Role } from '@insurecore/shared';
+import { Role } from '../types/shared';
 
 // Safe jsonwebtoken helper for CommonJS/ESM Vercel compatibility
 const safeSignToken = (payload: any): string => {

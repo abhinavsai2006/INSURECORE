@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const claim_controller_1 = require("../controllers/claim.controller");
 const auth_1 = require("../middleware/auth");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 const router = (0, express_1.Router)();
 router.use(auth_1.authenticate);
 router.get('/', claim_controller_1.getClaims);

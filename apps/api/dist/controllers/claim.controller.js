@@ -6,7 +6,7 @@ exports.getClaimById = getClaimById;
 exports.updateClaimStatus = updateClaimStatus;
 exports.getClaimTimeline = getClaimTimeline;
 const db_1 = require("../db");
-const shared_1 = require("@insurecore/shared");
+const shared_1 = require("../types/shared");
 const audit_1 = require("../services/audit");
 async function getClaims(req, res, next) {
     try {

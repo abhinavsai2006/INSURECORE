@@ -7,7 +7,7 @@ import {
   getClaimTimeline,
 } from '../controllers/claim.controller';
 import { authenticate, authorize } from '../middleware/auth';
-import { Role } from '@insurecore/shared';
+import { Role } from '../types/shared';
 
 const router = Router();
 
