@@ -12,12 +12,13 @@ import {
 } from '../controllers/policy.controller';
 import { authenticate, authorize } from '../middleware/auth';
 import { Role } from '../types/shared';
+import { userCache } from '../middleware/cache';
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get('/', getPolicies);
+router.get('/', userCache('1 minute'), getPolicies);
 router.get('/expiring-soon', authorize([Role.ADMIN, Role.AGENT]), getExpiringPolicies);
 router.post('/', authorize([Role.ADMIN, Role.AGENT]), createPolicy);
 router.get('/:id', getPolicyById);

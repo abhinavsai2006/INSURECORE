@@ -41,9 +41,11 @@ export const ClaimsPage: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await api.get('/claims');
-      setClaims(res.data.data || []);
+      const list = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      setClaims(list);
     } catch (err) {
       console.error(err);
+      setClaims([]);
     } finally {
       setIsLoading(false);
     }
@@ -57,22 +59,26 @@ export const ClaimsPage: React.FC = () => {
     const fetchUserPolicies = async () => {
       try {
         const res = await api.get('/policies?status=ACTIVE');
-        setPolicies(res.data.data || []);
-        if (res.data.data?.length > 0) {
-          setNewClaim((prev) => ({ ...prev, policyId: res.data.data[0].id }));
+        const list = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+        setPolicies(list);
+        if (list.length > 0) {
+          setNewClaim((prev) => ({ ...prev, policyId: list[0].id }));
         }
       } catch (err) {
         console.error(err);
+        setPolicies([]);
       }
     };
     if (isSubmitModalOpen) fetchUserPolicies();
   }, [isSubmitModalOpen]);
 
+  const safeClaims = Array.isArray(claims) ? claims : [];
+
   const handleSubmitClaim = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const claimRes = await api.post('/claims', newClaim);
-      const createdClaim = claimRes.data.data;
+      const createdClaim = claimRes.data?.data;
 
       // Upload file if selected
       if (claimFile && createdClaim) {
@@ -87,7 +93,7 @@ export const ClaimsPage: React.FC = () => {
 
       setIsSubmitModalOpen(false);
       setClaimFile(null);
-      setActionMessage(`Claim ${createdClaim.claimNumber} submitted successfully under 20-min TPA SLA.`);
+      setActionMessage(`Claim ${createdClaim?.claimNumber || ''} submitted successfully under 20-min TPA SLA.`);
       fetchClaims();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Claim submission failed');
@@ -111,10 +117,10 @@ export const ClaimsPage: React.FC = () => {
     }
   };
 
-  const filteredClaims = claims.filter((c) => {
+  const filteredClaims = safeClaims.filter((c) => {
     const matchesSearch =
-      c.claimNumber.toLowerCase().includes(search.toLowerCase()) ||
-      c.reason.toLowerCase().includes(search.toLowerCase()) ||
+      (c.claimNumber || '').toLowerCase().includes(search.toLowerCase()) ||
+      (c.reason || '').toLowerCase().includes(search.toLowerCase()) ||
       (c.policy?.policyNumber && c.policy.policyNumber.toLowerCase().includes(search.toLowerCase())) ||
       (c.policy?.customer?.name && c.policy.customer.name.toLowerCase().includes(search.toLowerCase()));
     const matchesStatus = !statusFilter || c.status === statusFilter;
@@ -141,8 +147,8 @@ export const ClaimsPage: React.FC = () => {
     { id: 'REJECTED', title: '5. Rejected / Flagged', count: filteredClaims.filter((c) => c.status === 'REJECTED').length },
   ];
 
-  const totalClaimAmount = claims.reduce((acc, c) => acc + (Number(c.claimAmount) || 0), 0);
-  const totalSettledAmount = claims.filter((c) => c.status === 'SETTLED' || c.status === 'APPROVED').reduce((acc, c) => acc + (Number(c.approvedAmount || c.claimAmount) || 0), 0);
+  const totalClaimAmount = safeClaims.reduce((acc, c) => acc + (Number(c.claimAmount) || 0), 0);
+  const totalSettledAmount = safeClaims.filter((c) => c.status === 'SETTLED' || c.status === 'APPROVED').reduce((acc, c) => acc + (Number(c.approvedAmount || c.claimAmount) || 0), 0);
 
   return (
     <div className="space-y-8 pb-20">
@@ -182,13 +188,13 @@ export const ClaimsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="p-5 space-y-2 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Claims Volume</span>
-          <p className="text-3xl font-extrabold">{claims.length}</p>
+          <p className="text-3xl font-extrabold">{safeClaims.length}</p>
           <span className="text-[11px] text-blue-400 font-bold block">{formatCurrency(totalClaimAmount)} Requested</span>
         </Card>
 
         <Card className="p-5 space-y-2 bg-white border-slate-200">
           <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Under Active Review</span>
-          <p className="text-3xl font-extrabold text-slate-900">{claims.filter((c) => c.status === 'SUBMITTED' || c.status === 'UNDER_REVIEW').length}</p>
+          <p className="text-3xl font-extrabold text-slate-900">{safeClaims.filter((c) => c.status === 'SUBMITTED' || c.status === 'UNDER_REVIEW').length}</p>
           <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Avg SLA: 1.2 Days</span>
         </Card>
 

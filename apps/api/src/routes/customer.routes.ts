@@ -8,12 +8,13 @@ import {
 } from '../controllers/customer.controller';
 import { authenticate, authorize } from '../middleware/auth';
 import { Role } from '../types/shared';
+import { userCache } from '../middleware/cache';
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get('/', getCustomers);
+router.get('/', userCache('1 minute'), getCustomers);
 router.post('/', authorize([Role.ADMIN, Role.AGENT]), createCustomer);
 router.get('/:id', getCustomerById);
 router.patch('/:id', updateCustomer);

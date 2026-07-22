@@ -24,6 +24,8 @@ app.use((req, res, next) => {
   next();
 });
 
+import { globalLimiter } from './middleware/rateLimiter';
+
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(
   cors({
@@ -35,6 +37,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(globalLimiter);
 
 // Base health check
 app.get('/health', (req, res) => {

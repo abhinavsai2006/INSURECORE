@@ -48,9 +48,11 @@ export const PoliciesPage: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await api.get(`/policies?search=${search}&status=${statusFilter}&policyType=${typeFilter}`);
-      setPolicies(res.data.data || []);
+      const list = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      setPolicies(list);
     } catch (err) {
       console.error(err);
+      setPolicies([]);
     } finally {
       setIsLoading(false);
     }
@@ -64,20 +66,24 @@ export const PoliciesPage: React.FC = () => {
     const fetchCustomersList = async () => {
       try {
         const res = await api.get('/customers');
-        setCustomers(res.data.data || []);
-        if (res.data.data?.length > 0) {
-          setNewPolicy((prev) => ({ ...prev, customerId: res.data.data[0].id }));
+        const list = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+        setCustomers(list);
+        if (list.length > 0) {
+          setNewPolicy((prev) => ({ ...prev, customerId: list[0].id }));
         }
       } catch (err) {
         console.error(err);
+        setCustomers([]);
       }
     };
     fetchCustomersList();
   }, []);
 
+  const safePolicies = Array.isArray(policies) ? policies : [];
+
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      setSelectedPolicyIds(policies.map((p) => p.id));
+      setSelectedPolicyIds(safePolicies.map((p) => p.id));
     } else {
       setSelectedPolicyIds([]);
     }
@@ -121,7 +127,7 @@ export const PoliciesPage: React.FC = () => {
   const handleCreatePolicy = async () => {
     try {
       const res = await api.post('/policies', newPolicy);
-      setActionMessage(`Policy ${res.data.data.policyNumber} issued successfully!`);
+      setActionMessage(`Policy ${res.data?.data?.policyNumber || 'issued'} successfully!`);
       setIsWizardOpen(false);
       fetchPolicies();
     } catch (err: any) {
@@ -130,13 +136,13 @@ export const PoliciesPage: React.FC = () => {
   };
 
   // Dashboard Aggregates
-  const totalPolicies = policies.length;
-  const activePolicies = policies.filter((p) => p.status === 'ACTIVE').length;
-  const renewalDuePolicies = policies.filter((p) => p.status === 'RENEWAL_DUE').length;
-  const expiredPolicies = policies.filter((p) => p.status === 'EXPIRED').length;
+  const totalPolicies = safePolicies.length;
+  const activePolicies = safePolicies.filter((p) => p.status === 'ACTIVE').length;
+  const renewalDuePolicies = safePolicies.filter((p) => p.status === 'RENEWAL_DUE').length;
+  const expiredPolicies = safePolicies.filter((p) => p.status === 'EXPIRED').length;
 
-  const totalSumInsured = policies.reduce((acc, p) => acc + (Number(p.sumInsured) || 0), 0);
-  const totalAnnualPremium = policies.reduce((acc, p) => acc + (Number(p.premiumAmount) || 0), 0);
+  const totalSumInsured = safePolicies.reduce((acc, p) => acc + (Number(p.sumInsured) || 0), 0);
+  const totalAnnualPremium = safePolicies.reduce((acc, p) => acc + (Number(p.premiumAmount) || 0), 0);
 
   return (
     <div className="space-y-8 pb-20">

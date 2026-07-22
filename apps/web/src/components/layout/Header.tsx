@@ -16,15 +16,17 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
     const fetchNotifications = async () => {
       try {
         const res = await api.get('/notifications');
-        setNotifications(res.data.data || []);
+        const list = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+        setNotifications(list);
       } catch (err) {
-        // silent fail
+        setNotifications([]);
       }
     };
     fetchNotifications();
   }, []);
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const safeNotifications = Array.isArray(notifications) ? notifications : [];
+  const unreadCount = safeNotifications.filter((n) => !n?.isRead).length;
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">

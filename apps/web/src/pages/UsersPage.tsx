@@ -49,9 +49,11 @@ export const UsersPage: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await api.get('/users');
-      setUsers(res.data.data || []);
+      const list = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      setUsers(list);
     } catch (err) {
       console.error(err);
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }
@@ -105,10 +107,14 @@ export const UsersPage: React.FC = () => {
     }
   };
 
-  const filteredUsers = users.filter((u) => {
+
+
+  const safeUsers = Array.isArray(users) ? users : [];
+
+  const filteredUsers = safeUsers.filter((u) => {
     const matchesSearch =
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase()) ||
+      (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+      (u.email || '').toLowerCase().includes(search.toLowerCase()) ||
       (u.phone && u.phone.includes(search));
     const matchesRole = !roleFilter || u.role === roleFilter;
     const matchesStatus =
@@ -164,25 +170,25 @@ export const UsersPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="p-5 space-y-2 bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-md">
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Workforce</span>
-          <p className="text-3xl font-extrabold">{users.length}</p>
+          <p className="text-3xl font-extrabold">{safeUsers.length}</p>
           <span className="text-[11px] text-blue-400 font-bold block">Across 12 Regional Branches</span>
         </Card>
 
         <Card className="p-5 space-y-2 bg-white border-slate-200">
           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Active Staff Accounts</span>
-          <p className="text-3xl font-extrabold text-slate-900">{users.filter((u) => u.isActive).length}</p>
+          <p className="text-3xl font-extrabold text-slate-900">{safeUsers.filter((u) => u.isActive).length}</p>
           <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">99.8% Active Ratio</span>
         </Card>
 
         <Card className="p-5 space-y-2 bg-white border-slate-200">
           <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600">Active Field Agents</span>
-          <p className="text-3xl font-extrabold text-slate-900">{users.filter((u) => u.role === 'AGENT').length}</p>
+          <p className="text-3xl font-extrabold text-slate-900">{safeUsers.filter((u) => u.role === 'AGENT').length}</p>
           <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">Licence IRDAI-AG-2026</span>
         </Card>
 
         <Card className="p-5 space-y-2 bg-white border-slate-200">
           <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600">Administrators & Officers</span>
-          <p className="text-3xl font-extrabold text-slate-900">{users.filter((u) => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').length}</p>
+          <p className="text-3xl font-extrabold text-slate-900">{safeUsers.filter((u) => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN').length}</p>
           <span className="text-[11px] font-bold text-slate-500">Underwriting & Claims</span>
         </Card>
 

@@ -64,9 +64,11 @@ export const CustomersPage: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await api.get('/customers');
-      setCustomers(res.data.data || []);
+      const list = Array.isArray(res.data?.data) ? res.data.data : Array.isArray(res.data) ? res.data : [];
+      setCustomers(list);
     } catch (err) {
       console.error(err);
+      setCustomers([]);
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +96,7 @@ export const CustomersPage: React.FC = () => {
         gender: newCustomer.gender,
       });
 
-      const cust = res.data.data;
+      const cust = res.data?.data;
       setCreatedCustomer(cust);
       setGeneratedProposalId(`PROP-2026-${Math.floor(100000 + Math.random() * 900000)}`);
       setRegStep('success');
@@ -137,11 +139,13 @@ export const CustomersPage: React.FC = () => {
     setRegStep('form');
   };
 
-  const filteredCustomers = customers.filter(
+  const safeCustomers = Array.isArray(customers) ? customers : [];
+
+  const filteredCustomers = safeCustomers.filter(
     (c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.phone.includes(searchQuery) ||
+      (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.phone && c.phone.includes(searchQuery)) ||
       (c.city && c.city.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 

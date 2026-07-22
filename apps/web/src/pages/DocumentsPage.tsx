@@ -122,11 +122,12 @@ export const DocumentsPage: React.FC = () => {
     setVerificationRemark('');
   };
 
-  const filteredKyc = kycList.filter(k => {
-    const matchesSearch = k.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          k.customerEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          k.docType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          k.id.toLowerCase().includes(searchQuery.toLowerCase());
+  const safeKyc = Array.isArray(kycList) ? kycList : [];
+  const filteredKyc = safeKyc.filter(k => {
+    const matchesSearch = (k.customerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (k.customerEmail || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (k.docType || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (k.id || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = !statusFilter || k.status === statusFilter;
     return matchesSearch && matchesStatus;
   });

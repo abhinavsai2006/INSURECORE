@@ -46,8 +46,10 @@ export const CustomerDetailPage: React.FC = () => {
     );
   }
 
-  const custPolicies = policies.filter((p) => p.customerId === id || p.customer?.id === id);
-  const custClaims = claims.filter((c) => c.policy?.customerId === id || c.policy?.customer?.id === id);
+  const safePolicies = Array.isArray(policies) ? policies : [];
+  const safeClaims = Array.isArray(claims) ? claims : [];
+  const custPolicies = safePolicies.filter((p) => p.customerId === id || p.customer?.id === id);
+  const custClaims = safeClaims.filter((c) => c.policy?.customerId === id || c.policy?.customer?.id === id);
 
   return (
     <div className="space-y-8 pb-20">

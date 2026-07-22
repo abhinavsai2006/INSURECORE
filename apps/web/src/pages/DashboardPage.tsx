@@ -26,11 +26,15 @@ export const DashboardPage: React.FC = () => {
           api.get('/policies?limit=5').catch(() => ({ data: { data: [] } })),
           api.get('/claims?limit=5').catch(() => ({ data: { data: [] } })),
         ]);
-        setData(repRes.data.data);
-        setPolicies(polRes.data.data || []);
-        setClaims(claimRes.data.data || []);
+        setData(repRes.data?.data || repRes.data);
+        const polList = Array.isArray(polRes.data?.data) ? polRes.data.data : Array.isArray(polRes.data) ? polRes.data : [];
+        const claimList = Array.isArray(claimRes.data?.data) ? claimRes.data.data : Array.isArray(claimRes.data) ? claimRes.data : [];
+        setPolicies(polList);
+        setClaims(claimList);
       } catch (err) {
         console.error(err);
+        setPolicies([]);
+        setClaims([]);
       } finally {
         setIsLoading(false);
       }
@@ -873,7 +877,8 @@ export const DashboardPage: React.FC = () => {
   }
 
   // 7. CUSTOMER DASHBOARD
-  const activePolicies = policies.filter((p) => p.status === 'ACTIVE');
+  const safePolicies = Array.isArray(policies) ? policies : [];
+  const activePolicies = safePolicies.filter((p) => p?.status === 'ACTIVE');
 
   return (
     <div className="space-y-8">
