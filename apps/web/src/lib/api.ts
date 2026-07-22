@@ -1,12 +1,14 @@
 import axios from 'axios';
 
 const getBaseUrl = () => {
-  if (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) {
-    return '/api/v1';
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    // On Vercel or any live domain, ALWAYS use relative '/api/v1' on current host
+    if (host.includes('vercel.app') || host !== 'localhost') {
+      return '/api/v1';
+    }
   }
-  const envUrl = (import.meta as any).env?.VITE_API_URL;
-  if (!envUrl) return '/api/v1';
-  return envUrl.endsWith('/api/v1') ? envUrl : `${envUrl.replace(/\/$/, '')}/api/v1`;
+  return 'http://localhost:5000/api/v1';
 };
 
 export const api = axios.create({
